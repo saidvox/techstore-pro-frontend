@@ -1,3 +1,64 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
+import { Shell } from './layout/shell/shell';
+
+export const routes: Routes = [
+  {
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        canActivate: [guestGuard],
+        loadComponent: () => import('./features/auth/login-page').then(m => m.LoginPage),
+      },
+      {
+        path: 'register',
+        canActivate: [guestGuard],
+        loadComponent: () => import('./features/auth/register-page').then(m => m.RegisterPage),
+      },
+      {
+        path: 'oauth2/success',
+        loadComponent: () => import('./features/auth/oauth2-success-page').then(m => m.OAuth2SuccessPage),
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'login' },
+    ],
+  },
+  {
+    path: '',
+    component: Shell,
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./features/home/home-page').then(m => m.HomePage),
+      },
+      {
+        path: 'catalogo',
+        loadComponent: () => import('./features/catalog/catalog-page').then(m => m.CatalogPage),
+      },
+      {
+        path: 'carrito',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/cart/cart-page').then(m => m.CartPage),
+      },
+      {
+        path: 'pedidos',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/orders/orders-page').then(m => m.OrdersPage),
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/admin/admin-dashboard-page').then(m => m.AdminDashboardPage),
+      },
+    ],
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./features/not-found/not-found-page').then(m => m.NotFoundPage),
+  },
+];
+

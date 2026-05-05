@@ -1,0 +1,54 @@
+
+> techstore-pro-frontend@0.0.0 start
+> ng serve --port 4200
+
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m               [2m | [22m[1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m              [2m | [22m[36m31.74 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                [2m | [22m[36m14.73 kB[39m[2m | [22m
+[32mchunk-MN7NFWRK.js[39m  [2m | [22m[2m-[22m                   [2m | [22m [36m3.96 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m       [2m | [22m[1m50.44 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m               [2m | [22m[1mRaw size[22m
+[32mchunk-65VX2F2W.js[39m  [2m | [22m[2mregister-page[22m       [2m | [22m[36m10.04 kB[39m[2m | [22m
+[32mchunk-QIY765T6.js[39m  [2m | [22m[2mlogin-page[22m          [2m | [22m [36m9.73 kB[39m[2m | [22m
+[32mchunk-WIBNLZLS.js[39m  [2m | [22m[2mcatalog-page[22m        [2m | [22m [36m5.82 kB[39m[2m | [22m
+[32mchunk-EKQXZ5OZ.js[39m  [2m | [22m[2madmin-dashboard-page[22m[2m | [22m [36m4.79 kB[39m[2m | [22m
+[32mchunk-YOQ6JM55.js[39m  [2m | [22m[2moauth2-success-page[22m [2m | [22m [36m3.93 kB[39m[2m | [22m
+[32mchunk-KAEUWZVB.js[39m  [2m | [22m[2mnot-found-page[22m      [2m | [22m [36m3.62 kB[39m[2m | [22m
+[32mchunk-MXP2HN42.js[39m  [2m | [22m[2morders-page[22m         [2m | [22m [36m3.61 kB[39m[2m | [22m
+[32mchunk-Q77TF6WI.js[39m  [2m | [22m[2mcart-page[22m           [2m | [22m [36m3.21 kB[39m[2m | [22m
+[32mchunk-VSYWEAVT.js[39m  [2m | [22m[2m-[22m                   [2m | [22m [36m1.37 kB[39m[2m | [22m
+
+Application bundle generation complete. [3.235 seconds] - 2026-05-05T14:30:28.955Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+[2m9:30:29 a. m.[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m     [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m      [2m | [22m[36m14.73 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m     [2m | [22m[1mRaw size[22m
+[32mchunk-SQF5TZC3.js[39m  [2m | [22m[2mlogin-page[22m[2m | [22m [36m9.92 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.608 seconds] - 2026-05-05T15:05:51.301Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m        [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m         [2m | [22m[36m14.73 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m        [2m | [22m[1mRaw size[22m
+[32mchunk-MC4DSAUF.js[39m  [2m | [22m[2mregister-page[22m[2m | [22m[36m10.71 kB[39m[2m | [22m
+[32mchunk-SYSPPE7N.js[39m  [2m | [22m[2mlogin-page[22m   [2m | [22m [36m9.92 kB[39m[2m | [22m
+[32mchunk-ZIHH3AHC.js[39m  [2m | [22m[2m-[22m            [2m | [22m [36m1.47 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.486 seconds] - 2026-05-05T15:11:07.572Z
+
+Page reload sent to client(s).

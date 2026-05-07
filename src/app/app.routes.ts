@@ -40,9 +40,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/catalog/catalog-page').then(m => m.CatalogPage),
       },
       {
+        path: 'catalogo/:id',
+        loadComponent: () => import('./features/catalog/product-detail-page').then(m => m.ProductDetailPage),
+      },
+      {
         path: 'carrito',
         canActivate: [authGuard],
         loadComponent: () => import('./features/cart/cart-page').then(m => m.CartPage),
+      },
+      {
+        path: 'checkout/mercado-pago/simulacion',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/payments/mercado-pago-simulation-page').then(m => m.MercadoPagoSimulationPage),
       },
       {
         path: 'pedidos',
@@ -61,4 +70,3 @@ export const routes: Routes = [
     loadComponent: () => import('./features/not-found/not-found-page').then(m => m.NotFoundPage),
   },
 ];
-

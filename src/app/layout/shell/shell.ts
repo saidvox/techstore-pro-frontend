@@ -3,6 +3,8 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 import { AuthSessionService } from '../../core/services/auth-session.service';
 import { CartStore } from '../../features/cart/cart.store';
@@ -12,9 +14,10 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
   selector: 'app-shell',
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive,
-    ButtonModule, BadgeModule, OverlayBadgeModule,
+    ButtonModule, BadgeModule, OverlayBadgeModule, ConfirmDialogModule,
     CartSidebar,
   ],
+  providers: [ConfirmationService],
   template: `
     <div class="min-h-screen" style="background: var(--ts-surface); color: var(--ts-text);">
 
@@ -109,6 +112,13 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
         <router-outlet />
       </main>
 
+      <!-- Dialog de Confirmación -->
+    <p-confirmDialog
+      styleClass="ts-confirm-dialog"
+      [dismissableMask]="true"
+      [closeOnEscape]="true"
+    ></p-confirmDialog>
+
       <!-- Cart Sidebar -->
       <app-cart-sidebar />
     </div>
@@ -140,6 +150,102 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
       background: rgba(16, 185, 129, 0.08);
       color: var(--ts-accent);
     }
+    ::ng-deep .ts-confirm-dialog {
+      background: var(--ts-card) !important;
+      border: 1px solid var(--ts-border) !important;
+      border-radius: 16px !important;
+      color: var(--ts-text) !important;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important;
+      overflow: hidden;
+      width: 90vw !important;
+      max-width: 420px !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-header {
+      padding: 1.5rem 1.5rem 1rem 1.5rem !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-title {
+      font-weight: 800 !important;
+      font-size: 1.25rem !important;
+      color: var(--ts-text) !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-header-icon {
+      color: var(--ts-text-muted) !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s !important;
+      background: transparent !important;
+      border: none !important;
+      cursor: pointer;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-header-icon:hover {
+      background: var(--ts-surface-2) !important;
+      color: var(--ts-text) !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-content {
+      padding: 0 1.5rem 1.5rem 1.5rem !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 1rem !important;
+      background: transparent !important;
+      border: none !important;
+      color: var(--ts-text) !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-confirm-dialog-icon {
+      font-size: 1.5rem !important;
+      color: #EF4444 !important;
+      margin: 0 !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-confirm-dialog-message {
+      margin: 0 !important;
+      font-size: 0.95rem !important;
+      color: var(--ts-text-dim) !important;
+      line-height: 1.5 !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-dialog-footer {
+      padding: 1.25rem 1.5rem !important;
+      background: var(--ts-surface-2) !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+      gap: 0.75rem !important;
+      border-top: 1px solid var(--ts-border) !important;
+    }
+    /* Estilos para los botones dentro del dialog */
+    ::ng-deep .ts-confirm-dialog .p-confirmdialog-accept-button {
+      background: rgba(239, 68, 68, 0.1) !important;
+      border: 1px solid rgba(239, 68, 68, 0.3) !important;
+      color: #EF4444 !important;
+      border-radius: 10px !important;
+      font-family: 'Outfit', sans-serif !important;
+      font-weight: 700 !important;
+      padding: 0.6rem 1.2rem !important;
+      transition: all 0.2s !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-confirmdialog-accept-button:hover {
+      background: rgba(239, 68, 68, 0.2) !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-confirmdialog-reject-button {
+      background: transparent !important;
+      border: 1px solid var(--ts-border) !important;
+      color: var(--ts-text-muted) !important;
+      border-radius: 10px !important;
+      font-family: 'Outfit', sans-serif !important;
+      font-weight: 700 !important;
+      padding: 0.6rem 1.2rem !important;
+      transition: all 0.2s !important;
+    }
+    ::ng-deep .ts-confirm-dialog .p-confirmdialog-reject-button:hover {
+      border-color: var(--ts-text-muted) !important;
+      color: var(--ts-text) !important;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -147,9 +253,21 @@ export class Shell {
   readonly session = inject(AuthSessionService);
   readonly cart = inject(CartStore);
   private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
 
   logout(): void {
-    this.session.clear();
-    void this.router.navigateByUrl('/auth/login');
+    this.confirmationService.confirm({
+      header: 'Cerrar sesión',
+      message: '¿Estás seguro de que deseas cerrar sesión y volver a la pantalla de inicio?',
+      icon: 'pi pi-sign-out',
+      acceptLabel: 'Sí, salir',
+      rejectLabel: 'Cancelar',
+      rejectIcon: 'none',
+      acceptIcon: 'none',
+      accept: () => {
+        this.session.clear();
+        void this.router.navigateByUrl('/auth/login');
+      }
+    });
   }
 }

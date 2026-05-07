@@ -20,6 +20,7 @@ export class OrdersStore {
   readonly filters = computed(() => this.filtersState());
 
   readonly statusOptions: SelectOption<OrderStatus>[] = [
+    { label: 'Pendiente de pago', value: 'PENDING_PAYMENT' },
     { label: 'Confirmado', value: 'CONFIRMED' },
     { label: 'Cancelado', value: 'CANCELLED' },
     { label: 'Entregado', value: 'DELIVERED' },
@@ -89,4 +90,3 @@ export class OrdersStore {
       });
   }
 }
-

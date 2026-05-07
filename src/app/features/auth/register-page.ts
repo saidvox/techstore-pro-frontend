@@ -9,43 +9,243 @@ import { AuthStore } from './auth.store';
 
 @Component({
   selector: 'app-register-page',
+  standalone: true,
   imports: [FormsModule, RouterLink, ButtonModule, InputTextModule, PasswordModule],
+  styles: [`
+    .auth-bg {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ts-surface);
+      padding: 2rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Decoración de fondo diferente al login */
+    .auth-bg::before {
+      content: '';
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, rgba(13,13,28,0) 60%);
+      bottom: -300px;
+      right: -300px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--ts-card);
+      border: 1px solid var(--ts-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      z-index: 1;
+      /* Animación de entrada: scale-in + fade para diferenciar del login */
+      animation: register-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      opacity: 0;
+      transform: scale(0.92);
+    }
+
+    @keyframes register-enter {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .auth-header { margin-bottom: 2rem; text-align: center; }
+    .auth-subtitle {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #10B981; /* Accent color para registro */
+      margin-bottom: 0.5rem;
+    }
+    .auth-title { font-size: 2rem; font-weight: 900; color: var(--ts-text); }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--ts-text-muted); }
+    
+    .form-input {
+      width: 100%;
+      background: var(--ts-surface-2) !important;
+      border: 1px solid var(--ts-border) !important;
+      border-radius: 12px !important;
+      color: var(--ts-text) !important;
+      padding: 0.75rem 1rem !important;
+      font-family: 'Outfit', sans-serif !important;
+      font-size: 0.95rem !important;
+      transition: all 0.2s;
+    }
+    .form-input:focus { border-color: #10B981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.15) !important; outline: none !important; }
+    .form-input::placeholder { color: var(--ts-text-dim) !important; }
+
+    ::ng-deep .ts-pass-reg .p-password-input {
+      width: 100% !important;
+      background: var(--ts-surface-2) !important;
+      border: 1px solid var(--ts-border) !important;
+      border-radius: 12px !important;
+      color: var(--ts-text) !important;
+      padding: 0.75rem 1rem !important;
+      font-family: 'Outfit', sans-serif !important;
+      font-size: 0.95rem !important;
+      transition: all 0.2s;
+    }
+    ::ng-deep .ts-pass-reg .p-password-input:focus { border-color: #10B981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.15) !important; outline: none !important; }
+    ::ng-deep .ts-pass-reg .p-icon { color: var(--ts-text-muted) !important; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 12px;
+      /* Gradiente verde para registro */
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-top: 1.5rem;
+    }
+    .btn-submit:hover:not(:disabled) { 
+      opacity: 0.9; 
+      transform: translateY(-2px); 
+      box-shadow: 0 8px 16px rgba(16,185,129,0.25);
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-google {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 12px;
+      background: var(--ts-surface-2);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-text);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+    .btn-google:hover { background: var(--ts-surface); border-color: #10B981; color: #10B981; }
+
+    .divider-wrap {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--ts-text-dim);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .divider-wrap::before, .divider-wrap::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--ts-border);
+    }
+    .divider-wrap:not(:empty)::before { margin-right: .5em; }
+    .divider-wrap:not(:empty)::after { margin-left: .5em; }
+
+    .footer-text { margin-top: 2rem; text-align: center; font-size: 0.9rem; color: var(--ts-text-muted); }
+    .footer-link { color: #10B981; font-weight: 800; text-decoration: none; transition: color 0.2s; }
+    .footer-link:hover { color: #34D399; text-decoration: underline; }
+
+    .error-box {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #EF4444;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+  `],
   template: `
-    <section class="mx-auto grid min-h-[calc(100vh-3rem)] max-w-md place-items-center px-4">
-      <form class="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm" (ngSubmit)="register()">
-        <div class="mb-6">
-          <p class="text-sm font-semibold uppercase text-emerald-700">Cuenta</p>
-          <h1 class="text-3xl font-black tracking-tight">Crear cuenta</h1>
+    <div class="auth-bg">
+      <!-- Botón de regreso -->
+      <a routerLink="/" class="absolute top-6 left-6 sm:top-8 sm:left-8 flex items-center gap-2 text-sm font-bold no-underline transition-all hover:-translate-x-1" style="color: var(--ts-text-muted); z-index: 10;">
+        <i class="pi pi-arrow-left"></i> Volver al inicio
+      </a>
+
+      <div class="auth-card">
+        <div class="auth-header">
+          <p class="auth-subtitle">Cuenta</p>
+          <h1 class="auth-title">Regístrate</h1>
         </div>
 
-        <div class="grid gap-4">
-          <label class="grid gap-2 text-sm font-semibold text-slate-700">
-            Nombre
-            <input pInputText name="name" autocomplete="name" [(ngModel)]="name" required />
-          </label>
-          <label class="grid gap-2 text-sm font-semibold text-slate-700">
-            Email
-            <input pInputText name="email" type="email" autocomplete="email" [(ngModel)]="email" required />
-          </label>
-          <label class="grid gap-2 text-sm font-semibold text-slate-700">
-            Password
-            <p-password name="password" [(ngModel)]="password" [feedback]="true" [toggleMask]="true" inputStyleClass="w-full" styleClass="w-full" required />
-          </label>
-
+        <form (ngSubmit)="register()">
+          
           @if (auth.error()) {
-            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{{ auth.error() }}</p>
+            <div class="error-box">
+              <i class="pi pi-exclamation-circle"></i>
+              {{ auth.error() }}
+            </div>
           }
 
-          <p-button type="submit" label="Registrarme" icon="pi pi-user-plus" [loading]="auth.loading()" />
-          <p-button type="button" label="Registrarme con Google" icon="pi pi-google" severity="secondary" [outlined]="true" (onClick)="registerWithGoogle()" />
-        </div>
+          <div class="form-group">
+            <label class="form-label">Nombre completo</label>
+            <input class="form-input" name="name" type="text" placeholder="Juan Pérez" autocomplete="name" [(ngModel)]="name" required />
+          </div>
 
-        <p class="mt-5 text-center text-sm text-slate-600">
-          Ya tienes cuenta?
-          <a routerLink="/auth/login" class="font-bold text-emerald-700">Inicia sesion</a>
+          <div class="form-group">
+            <label class="form-label">Correo electrónico</label>
+            <input class="form-input" name="email" type="email" placeholder="tu@correo.com" autocomplete="email" [(ngModel)]="email" required />
+          </div>
+
+          <div class="form-group ts-pass-reg">
+            <label class="form-label">Contraseña</label>
+            <p-password name="password" [(ngModel)]="password" [feedback]="true" [toggleMask]="true" placeholder="Mínimo 8 caracteres" required />
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="auth.loading()">
+            @if (auth.loading()) {
+              <i class="pi pi-spinner pi-spin"></i>
+            } @else {
+              <i class="pi pi-user-plus"></i>
+            }
+            Crear cuenta
+          </button>
+        </form>
+
+        <div class="divider-wrap">O registrarse con</div>
+
+        <button type="button" class="btn-google" (click)="registerWithGoogle()">
+          <i class="pi pi-google"></i>
+          Google
+        </button>
+
+        <p class="footer-text">
+          ¿Ya tienes cuenta?
+          <a routerLink="/auth/login" class="footer-link">Inicia sesión</a>
         </p>
-      </form>
-    </section>
+      </div>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,6 +257,7 @@ export class RegisterPage {
   password = '';
 
   register(): void {
+    if (!this.name || !this.email || !this.password) return;
     this.auth.register({ name: this.name, email: this.email, password: this.password });
   }
 

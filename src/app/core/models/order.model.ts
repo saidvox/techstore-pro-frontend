@@ -1,7 +1,7 @@
 import { PageQuery } from './page.model';
 import { User } from './user.model';
 
-export type OrderStatus = 'CONFIRMED' | 'CANCELLED' | 'DELIVERED';
+export type OrderStatus = 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'DELIVERED';
 export type OrderScope = 'mine' | 'all';
 
 export interface OrderItem {
@@ -37,4 +37,3 @@ export interface OrderFilters extends PageQuery {
 export interface OrderStatusUpdateRequest {
   status: OrderStatus;
 }
-

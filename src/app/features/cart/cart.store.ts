@@ -4,6 +4,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Cart } from '../../core/models/cart.model';
 import { Product } from '../../core/models/product.model';
 import { CartApiService } from '../../core/services/cart-api.service';
+import { PaymentApiService } from '../../core/services/payment-api.service';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { from } from 'rxjs';
+import { concatMap, toArray, switchMap } from 'rxjs/operators';
 
 export interface LocalCartItem {
   productId: number;
@@ -17,7 +22,10 @@ export interface LocalCartItem {
 @Injectable({ providedIn: 'root' })
 export class CartStore {
   private readonly cartApi = inject(CartApiService);
+  private readonly paymentApi = inject(PaymentApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly messageService = inject(MessageService);
 
   // ─── API Cart (usuarios autenticados) ─────────────────────
   readonly cart = signal<Cart>({ items: [], total: 0 });
@@ -164,5 +172,42 @@ export class CartStore {
           this.loading.set(false);
         },
       });
+  }
+
+  checkoutFlow(): void {
+    const items = this._localItems();
+    if (items.length === 0) return;
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Vaciar primero el carrito del backend por si había algo viejo, o simplemente sobreescribir.
+    // Como upsertItem agrega/actualiza, para estar seguros podemos vaciarlo primero,
+    // pero upsert sirve. Vamos directo al from.
+    this.cartApi.clear().pipe(
+      switchMap(() => from(items).pipe(
+        concatMap(item => this.cartApi.upsertItem(item.productId, { quantity: item.quantity })),
+        toArray()
+      )),
+      switchMap(() => this.paymentApi.startMercadoPagoSimulation()),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: checkout => {
+        this._localItems.set([]);
+        this.cart.set({ items: [], total: 0 });
+        this.loading.set(false);
+        this.messageService.add({ 
+          severity: 'success', 
+          summary: '¡Pedido exitoso!', 
+          detail: 'Tu orden ha sido procesada correctamente.',
+          life: 4000
+        });
+        window.location.assign(checkout.checkoutUrl);
+      },
+      error: () => {
+        this.error.set('Ocurrió un error al procesar tu pedido. Intenta nuevamente.');
+        this.loading.set(false);
+      }
+    });
   }
 }

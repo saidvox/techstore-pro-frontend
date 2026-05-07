@@ -2,7 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Category } from '../../core/models/category.model';
-import { Product, ProductFilters, ProductStockStatus } from '../../core/models/product.model';
+import { Product, ProductFilters } from '../../core/models/product.model';
 import { CategoryApiService } from '../../core/services/category-api.service';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { SelectOption } from '../../shared/models/select-option.model';
@@ -12,7 +12,7 @@ export class CatalogStore {
   private readonly categoryApi = inject(CategoryApiService);
   private readonly productApi = inject(ProductApiService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly filtersState = signal<ProductFilters>({ page: 0, size: 10 });
+  private readonly filtersState = signal<ProductFilters>({ page: 0, size: 10, sort: 'name,asc' });
 
   readonly categories = signal<Category[]>([]);
   readonly products = signal<Product[]>([]);
@@ -27,12 +27,6 @@ export class CatalogStore {
   readonly categoryOptions = computed<SelectOption<string>[]>(() => {
     return this.categories().map(category => ({ label: category.name, value: category.name }));
   });
-
-  readonly stockOptions: SelectOption<ProductStockStatus>[] = [
-    { label: 'Con stock', value: 'IN_STOCK' },
-    { label: 'Sin stock', value: 'OUT_OF_STOCK' },
-    { label: 'Stock bajo', value: 'LOW_STOCK' },
-  ];
 
   load(overrides: ProductFilters = {}): void {
     this.filtersState.update(filters => ({ ...filters, ...overrides }));

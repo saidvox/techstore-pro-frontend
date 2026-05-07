@@ -82,6 +82,11 @@ body {
 .ts-fade-in   { animation: ts-fade-in   0.3s ease both; }
 .ts-scale-in  { animation: ts-scale-in  0.3s ease both; }
 
+@keyframes skel-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
 /* ─── Utility classes TechStore ──────────────────────────── */
 .ts-card {
   background: var(--ts-card);
@@ -130,4 +135,134 @@ body {
 .ts-badge-warn    { background: rgba(245, 158, 11, 0.15);  color: #F59E0B; }
 .ts-badge-danger  { background: rgba(239, 68, 68, 0.15);   color: #EF4444; }
 .ts-badge-brand   { background: rgba(108, 99, 255, 0.15);  color: #6C63FF; }
+
+/* ─── PrimeNG Overrides ──────────────────────────────────── */
+.p-toast .p-toast-message {
+  background: var(--ts-surface-2) !important;
+  border: 1px solid var(--ts-border) !important;
+  border-radius: 12px !important;
+  color: var(--ts-text) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+  padding: 1.25rem 1.5rem !important;
+}
+
+.p-toast .p-toast-message-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+}
+
+.p-toast .p-toast-message-icon {
+  font-size: 1.5rem !important;
+}
+
+.p-toast-message-success .p-toast-message-icon {
+  color: #10B981 !important;
+}
+
+.p-toast .p-toast-message-text {
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.35rem !important;
+  flex: 1 !important;
+}
+
+.p-toast .p-toast-summary {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+  color: var(--ts-text) !important;
+}
+
+.p-toast .p-toast-detail {
+  font-family: 'Outfit', sans-serif !important;
+  color: var(--ts-text-muted) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.p-toast .p-toast-close-button {
+  color: var(--ts-text-muted) !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: auto !important;
+}
+
+.p-toast .p-toast-close-button:hover {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--ts-text) !important;
+}
+
+/* ─── PrimeNG Select Overrides ───────────────────────────── */
+.p-select {
+  background: var(--ts-card) !important;
+  border: 1px solid var(--ts-border) !important;
+  border-radius: 12px !important;
+  color: var(--ts-text) !important;
+  transition: all 0.2s !important;
+  box-shadow: none !important;
+}
+
+.p-select:not(.p-disabled):hover {
+  border-color: var(--ts-brand) !important;
+}
+
+.p-select.p-focus {
+  border-color: var(--ts-brand) !important;
+  outline: 2px solid rgba(108, 99, 255, 0.25) !important;
+  outline-offset: 2px !important;
+}
+
+.p-select-label {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.95rem !important;
+  padding: 0.75rem 1rem !important;
+  color: var(--ts-text) !important;
+}
+
+.p-select-dropdown {
+  color: var(--ts-text-muted) !important;
+  padding: 0 1rem !important;
+}
+
+.p-select-overlay {
+  background: var(--ts-surface-2) !important;
+  border: 1px solid var(--ts-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+  padding: 0.5rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.p-select-option {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.95rem !important;
+  color: var(--ts-text) !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 8px !important;
+  transition: background 0.2s !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.p-select-option:last-child {
+  margin-bottom: 0 !important;
+}
+
+.p-select-option:not(.p-select-option-selected):not(.p-disabled):hover {
+  background: var(--ts-card) !important;
+  color: var(--ts-brand) !important;
+}
+
+.p-select-option-selected {
+  background: rgba(108, 99, 255, 0.1) !important;
+  color: var(--ts-brand) !important;
+  font-weight: 700 !important;
+}
 

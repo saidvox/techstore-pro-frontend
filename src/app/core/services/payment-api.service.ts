@@ -4,6 +4,11 @@ import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from '../config/api-url.token';
 import { CheckoutResponse, Payment } from '../models/payment.model';
 
+export interface MercadoPagoReturnRequest {
+  paymentId: string | null;
+  status: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PaymentApiService {
   private readonly http = inject(HttpClient);
@@ -23,5 +28,9 @@ export class PaymentApiService {
 
   rejectSimulation(externalReference: string) {
     return this.http.post<Payment>(`${this.apiUrl}/pagos/simulados/${externalReference}/rechazar`, {});
+  }
+
+  syncMercadoPagoReturn(externalReference: string, request: MercadoPagoReturnRequest) {
+    return this.http.post<Payment>(`${this.apiUrl}/pagos/mercado-pago/${externalReference}/sincronizar`, request);
   }
 }

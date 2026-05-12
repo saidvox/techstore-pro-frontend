@@ -1,4 +1,4 @@
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe, DatePipe, NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -10,6 +10,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import { Category } from '../../core/models/category.model';
@@ -27,14 +28,14 @@ interface LazyPageEvent {
 
 @Component({
   selector: 'app-admin-dashboard-page',
-  imports: [DecimalPipe, DatePipe, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, TableModule, TagModule, TextareaModule, DialogModule],
+  imports: [DecimalPipe, DatePipe, NgClass, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, TableModule, TagModule, TextareaModule, DialogModule, TooltipModule],
   styles: [`
     .admin-page { min-height: 100vh; background: var(--ts-surface); padding-bottom: 4rem; }
     
     .table-card {
       background: var(--ts-card);
       border: 1px solid var(--ts-border);
-      border-radius: 16px;
+      border-radius: 8px;
       overflow: hidden;
       margin-bottom: 2rem;
       animation: fadeIn 0.3s ease-out;
@@ -54,23 +55,48 @@ interface LazyPageEvent {
       font-size: 1.1rem;
       color: var(--ts-text);
       display: flex;
+      gap: 1rem;
       justify-content: space-between;
       align-items: center;
     }
 
     .filters-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 0.75rem;
-      padding: 1rem 1.5rem;
+      padding: 0.95rem 1rem 1rem;
       border-bottom: 1px solid var(--ts-border);
       background: rgba(255,255,255,0.015);
+      align-items: end;
     }
 
     .filter-actions {
       display: flex;
       align-items: end;
       gap: 0.5rem;
+      justify-content: flex-start;
+      grid-column: span 3;
+      min-width: 0;
+    }
+
+    .filter-action-secondary {
+      align-items: center;
+      border-radius: 8px;
+      display: inline-flex;
+      font-size: 0.82rem;
+      font-weight: 800;
+      gap: 0.4rem;
+      height: 36px;
+      justify-content: center;
+      line-height: 1;
+      padding: 0 0.85rem;
+      white-space: nowrap;
+    }
+
+    .filter-action-secondary {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--ts-border);
+      color: var(--ts-text-muted);
     }
 
     .filter-label {
@@ -82,16 +108,150 @@ interface LazyPageEvent {
       font-weight: 800;
       letter-spacing: 0.05em;
       text-transform: uppercase;
+      grid-column: span 2;
+      min-width: 0;
     }
+
+    .filter-label.filter-search {
+      grid-column: span 3;
+    }
+
+    .filter-label.filter-small {
+      grid-column: span 2;
+    }
+
+    .filter-label.filter-secondary { opacity: 0.9; }
 
     .native-date {
       background: var(--ts-surface-2);
       border: 1px solid var(--ts-border);
       border-radius: 8px;
       color: var(--ts-text);
-      padding: 0.62rem 0.75rem;
+      padding: 0 0.68rem;
       font: inherit;
-      min-height: 40px;
+      height: 36px;
+      line-height: 36px;
+      width: 100%;
+    }
+
+    .desktop-data { display: block; }
+    .mobile-data { display: none; }
+
+    .section-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      min-height: 13rem;
+      padding: 2rem 1.25rem;
+      color: var(--ts-text-muted);
+      text-align: center;
+      border-top: 1px solid var(--ts-border);
+    }
+
+    .section-state i {
+      color: var(--ts-text-dim);
+      font-size: 2rem;
+    }
+
+    .section-state strong {
+      color: var(--ts-text);
+      font-size: 0.95rem;
+    }
+
+    .mobile-list {
+      display: grid;
+      gap: 0.85rem;
+      padding: 1rem;
+      border-top: 1px solid var(--ts-border);
+    }
+
+    .mobile-card {
+      background: var(--ts-surface-2);
+      border: 1px solid var(--ts-border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .mobile-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .mobile-card-title {
+      color: var(--ts-text);
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .mobile-card-subtitle {
+      color: var(--ts-text-dim);
+      font-size: 0.78rem;
+      margin-top: 0.2rem;
+      overflow-wrap: anywhere;
+    }
+
+    .mobile-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+
+    .mobile-meta span {
+      color: var(--ts-text-muted);
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .mobile-meta strong {
+      color: var(--ts-text);
+      display: block;
+      font-size: 0.9rem;
+      margin-top: 0.15rem;
+    }
+
+    .mobile-actions {
+      border-top: 1px solid var(--ts-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+      margin-top: 0.9rem;
+      padding-top: 0.85rem;
+    }
+
+    .mobile-pager {
+      align-items: center;
+      border-top: 1px solid var(--ts-border);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      padding: 0 1rem 1rem;
+    }
+
+    .status-badge {
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status-badge-pending {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #FBBF24;
+    }
+
+    .status-badge-confirmed {
+      background: rgba(108, 99, 255, 0.16);
+      border-color: rgba(108, 99, 255, 0.35);
+      color: var(--ts-brand-light);
     }
 
     /* PrimeNG Table overrides para dark mode premium */
@@ -151,10 +311,119 @@ interface LazyPageEvent {
       color: var(--ts-text) !important;
       border-radius: 8px !important;
       width: 100% !important;
+      box-shadow: none !important;
+    }
+    ::ng-deep .filters-bar .p-inputtext,
+    ::ng-deep .filters-bar .p-inputnumber-input,
+    ::ng-deep .filters-bar .p-select,
+    .native-date {
+      box-sizing: border-box;
+      height: 36px !important;
+      min-height: 36px !important;
+    }
+    ::ng-deep .filters-bar .p-inputtext,
+    ::ng-deep .filters-bar .p-inputnumber-input {
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      line-height: 34px !important;
+      padding: 0 0.68rem !important;
+    }
+    ::ng-deep .filters-bar .p-select {
+      align-items: center;
+      display: flex;
+    }
+    ::ng-deep .filters-bar .p-select-label {
+      align-items: center;
+      display: flex;
+      flex: 1;
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      height: 34px;
+      line-height: 34px;
+      min-height: 34px;
+      padding: 0 0.68rem !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    ::ng-deep .filters-bar .p-select-dropdown {
+      align-items: center;
+      display: flex;
+      height: 34px;
+      justify-content: center;
+      width: 2rem;
+    }
+    ::ng-deep .filters-bar .p-select-dropdown-icon {
+      font-size: 0.72rem;
+    }
+    ::ng-deep .filters-bar .p-inputtext::placeholder,
+    ::ng-deep .filters-bar .p-inputnumber-input::placeholder {
+      color: var(--ts-text-dim);
+      opacity: 1;
     }
     ::ng-deep .filters-bar .p-inputnumber,
     ::ng-deep .filters-bar .p-select {
       width: 100% !important;
+    }
+    ::ng-deep .filter-priority .p-inputtext,
+    ::ng-deep .filter-priority .p-select {
+      border-color: rgba(108, 99, 255, 0.38) !important;
+      background: rgba(108, 99, 255, 0.055) !important;
+    }
+    @media (max-width: 1180px) {
+      .filters-bar {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+      .filter-label,
+      .filter-actions {
+        grid-column: span 2;
+      }
+      .filter-label.filter-search {
+        grid-column: span 3;
+      }
+      .filter-label.filter-small {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .admin-page { padding-bottom: 2rem; }
+      .table-header-title {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 1rem;
+      }
+      .filters-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 0.9rem;
+      }
+      .filter-label,
+      .filter-label.filter-search,
+      .filter-label.filter-small {
+        grid-column: span 2;
+      }
+      .filter-actions {
+        grid-column: span 2;
+        justify-content: stretch;
+      }
+      .filter-action-secondary {
+        flex: 1;
+        height: 44px;
+      }
+      .desktop-data { display: none; }
+      .mobile-data { display: block; }
+      .mobile-meta { grid-template-columns: 1fr; }
+      .mobile-pager { display: flex; }
+    }
+
+    @media (max-width: 420px) {
+      .filters-bar { grid-template-columns: 1fr; }
+      .filter-label,
+      .filter-label.filter-search,
+      .filter-label.filter-small,
+      .filter-actions {
+        grid-column: span 1;
+      }
     }
   `],
   template: `
@@ -168,9 +437,9 @@ interface LazyPageEvent {
             <h1 class="text-3xl font-black" style="color: var(--ts-text);">Gestion de Inventario</h1>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [loading]="loading()" (onClick)="reload()" pTooltip="Actualizar datos" />
-            <p-button label="Nueva Categoria" icon="pi pi-folder-plus" severity="secondary" (onClick)="openCategoryDialog()" />
-            <p-button label="Nuevo Producto" icon="pi pi-box" (onClick)="openProductDialog()" />
+            <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [loading]="loading()" (onClick)="reload()" ariaLabel="Actualizar datos del administrador" title="Actualizar datos" pTooltip="Actualizar datos" />
+            <p-button label="Nueva Categoria" icon="pi pi-folder-plus" severity="secondary" (onClick)="openCategoryDialog()" ariaLabel="Crear nueva categoria" title="Crear nueva categoria" />
+            <p-button label="Nuevo Producto" icon="pi pi-box" (onClick)="openProductDialog()" ariaLabel="Crear nuevo producto" title="Crear nuevo producto" />
           </div>
         </div>
 
@@ -178,16 +447,19 @@ interface LazyPageEvent {
         <div class="flex gap-6 border-b mb-6" style="border-color: var(--ts-border);">
           <button class="pb-3 text-sm font-bold tracking-wide uppercase transition-colors" 
                   [class]="activeTab() === 'productos' ? 'text-[var(--ts-brand)] border-b-2 border-[var(--ts-brand)]' : 'text-[var(--ts-text-muted)] hover:text-[var(--ts-text)]'" 
+                  [attr.aria-pressed]="activeTab() === 'productos'"
                   (click)="activeTab.set('productos')">
             Productos
           </button>
           <button class="pb-3 text-sm font-bold tracking-wide uppercase transition-colors" 
                   [class]="activeTab() === 'categorias' ? 'text-[var(--ts-brand)] border-b-2 border-[var(--ts-brand)]' : 'text-[var(--ts-text-muted)] hover:text-[var(--ts-text)]'" 
+                  [attr.aria-pressed]="activeTab() === 'categorias'"
                   (click)="activeTab.set('categorias')">
             Categorias
           </button>
           <button class="pb-3 text-sm font-bold tracking-wide uppercase transition-colors" 
                   [class]="activeTab() === 'pedidos' ? 'text-[var(--ts-brand)] border-b-2 border-[var(--ts-brand)]' : 'text-[var(--ts-text-muted)] hover:text-[var(--ts-text)]'" 
+                  [attr.aria-pressed]="activeTab() === 'pedidos'"
                   (click)="activeTab.set('pedidos')">
             Pedidos
           </button>
@@ -201,48 +473,107 @@ interface LazyPageEvent {
               <span class="text-xs px-3 py-1 rounded-full" style="background: rgba(255,255,255,0.05); color: var(--ts-text-muted);">{{ productsTotalElements() }} registrados</span>
             </div>
             <div class="filters-bar">
-              <label class="filter-label">
+              <label class="filter-label filter-search filter-priority">
                 Buscar
-                <input pInputText type="search" [(ngModel)]="productFilters.q" (keyup.enter)="applyProductFilters()" placeholder="Nombre o descripcion" />
+                <input pInputText type="search" [(ngModel)]="productFilters.q" (ngModelChange)="scheduleProductFilters()" placeholder="Nombre o descripcion" aria-label="Buscar productos por nombre o descripcion" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Categoria
-                <p-select [options]="productCategoryOptions()" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.category" [showClear]="true" appendTo="body" />
+                <p-select [options]="productCategoryOptions()" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.category" (ngModelChange)="applyProductFilters()" [showClear]="true" placeholder="Todas" appendTo="body" ariaLabel="Filtrar productos por categoria" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Stock
-                <p-select [options]="stockOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.stockStatus" [showClear]="true" appendTo="body" />
+                <p-select [options]="stockOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.stockStatus" (ngModelChange)="applyProductFilters()" [showClear]="true" placeholder="Cualquier stock" appendTo="body" ariaLabel="Filtrar productos por stock" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Activo
-                <p-select [options]="activeOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.active" [showClear]="true" appendTo="body" />
-              </label>
-              <label class="filter-label">
-                Precio min.
-                <p-inputnumber [(ngModel)]="productFilters.minPrice" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" />
-              </label>
-              <label class="filter-label">
-                Precio max.
-                <p-inputnumber [(ngModel)]="productFilters.maxPrice" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" />
-              </label>
-              <label class="filter-label">
-                Desde
-                <input class="native-date" type="date" [(ngModel)]="productFilters.createdFrom" />
-              </label>
-              <label class="filter-label">
-                Hasta
-                <input class="native-date" type="date" [(ngModel)]="productFilters.createdTo" />
-              </label>
-              <label class="filter-label">
-                Orden
-                <p-select [options]="productSortOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.sort" appendTo="body" />
+                <p-select [options]="activeOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.active" (ngModelChange)="applyProductFilters()" [showClear]="true" placeholder="Todos" appendTo="body" ariaLabel="Filtrar productos por estado activo" />
               </label>
               <div class="filter-actions">
-                <p-button label="Filtrar" icon="pi pi-search" size="small" (onClick)="applyProductFilters()" />
-                <p-button icon="pi pi-times" severity="secondary" [text]="true" [rounded]="true" size="small" (onClick)="clearProductFilters()" />
+                <button type="button" class="filter-action-secondary" (click)="clearProductFilters()" aria-label="Limpiar filtros de productos" title="Limpiar filtros de productos">
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                  Limpiar
+                </button>
               </div>
+              <label class="filter-label filter-secondary">
+                Precio min.
+                <p-inputnumber [(ngModel)]="productFilters.minPrice" (ngModelChange)="scheduleProductFilters()" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="S/ 0.00" />
+              </label>
+              <label class="filter-label filter-secondary">
+                Precio max.
+                <p-inputnumber [(ngModel)]="productFilters.maxPrice" (ngModelChange)="scheduleProductFilters()" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="Sin limite" />
+              </label>
+              <label class="filter-label filter-small filter-secondary">
+                Desde
+                <input class="native-date" type="date" [(ngModel)]="productFilters.createdFrom" (ngModelChange)="applyProductFilters()" />
+              </label>
+              <label class="filter-label filter-small filter-secondary">
+                Hasta
+                <input class="native-date" type="date" [(ngModel)]="productFilters.createdTo" (ngModelChange)="applyProductFilters()" />
+              </label>
+              <label class="filter-label filter-secondary">
+                Orden
+                <p-select [options]="productSortOptions" optionLabel="label" optionValue="value" [(ngModel)]="productFilters.sort" (ngModelChange)="applyProductFilters()" appendTo="body" ariaLabel="Ordenar productos" />
+              </label>
+            </div>
+            @if (productsError()) {
+              <div class="section-state" role="alert" aria-live="polite">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                <strong>No se pudieron cargar los productos.</strong>
+                <span>Revisa la conexion o intenta nuevamente.</span>
+                <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="retryProducts()" ariaLabel="Reintentar carga de productos" title="Reintentar carga de productos" />
+              </div>
+            } @else {
+            <div class="mobile-data">
+              @if (productsLoading()) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                  <strong>Cargando productos...</strong>
+                  <span>Estamos actualizando el inventario.</span>
+                </div>
+              } @else if (products().length === 0) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-inbox" aria-hidden="true"></i>
+                  <strong>No hay productos para mostrar.</strong>
+                  <span>Ajusta los filtros o crea un producto nuevo.</span>
+                </div>
+              } @else {
+                <div class="mobile-list" aria-label="Productos en formato de tarjetas">
+                  @for (row of products(); track row.id) {
+                    <article class="mobile-card">
+                      <div class="mobile-card-header">
+                        <div class="flex min-w-0 gap-3">
+                          <img class="h-14 w-14 shrink-0 rounded-lg object-cover" [src]="row.imageUrl || fallbackImage" [alt]="row.name" style="background: rgba(255,255,255,0.05);" />
+                          <div class="min-w-0">
+                            <h3 class="mobile-card-title" [class.opacity-50]="!row.active">{{ row.name }}</h3>
+                            <p class="mobile-card-subtitle">{{ row.description }}</p>
+                          </div>
+                        </div>
+                        <span class="ts-badge" [class.ts-badge-success]="row.active" [class.ts-badge-danger]="!row.active">
+                          {{ row.active ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </div>
+                      <div class="mobile-meta">
+                        <div><span>Categoria</span><strong>{{ row.category }}</strong></div>
+                        <div><span>Precio</span><strong>S/ {{ row.price | number: '1.2-2' }}</strong></div>
+                        <div><span>Stock</span><strong [class.text-red-400]="row.stock <= 0" [class.text-emerald-400]="row.stock > 0">{{ row.stock }}</strong></div>
+                      </div>
+                      <div class="mobile-actions">
+                        <p-button label="Editar" icon="pi pi-pencil" severity="info" size="small" [text]="true" (onClick)="openProductDialog(row)" [ariaLabel]="'Editar producto ' + row.name" [title]="'Editar producto ' + row.name" />
+                        <p-button [label]="row.active ? 'Desactivar' : 'Activar'" [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" size="small" [text]="true" (onClick)="toggleProductActive(row)" [ariaLabel]="(row.active ? 'Desactivar producto ' : 'Activar producto ') + row.name" [title]="(row.active ? 'Desactivar producto ' : 'Activar producto ') + row.name" />
+                      </div>
+                    </article>
+                  }
+                </div>
+                <div class="mobile-pager">
+                  <p-button label="Anterior" icon="pi pi-chevron-left" severity="secondary" size="small" [text]="true" [disabled]="productPage() === 0 || productsLoading()" (onClick)="previousProductsPage()" ariaLabel="Pagina anterior de productos" title="Pagina anterior de productos" />
+                  <span class="text-xs font-bold text-[var(--ts-text-muted)]">Pagina {{ productPage() + 1 }} de {{ productTotalPages() }}</span>
+                  <p-button label="Siguiente" icon="pi pi-chevron-right" iconPos="right" severity="secondary" size="small" [text]="true" [disabled]="productPage() >= productTotalPages() - 1 || productsLoading()" (onClick)="nextProductsPage()" ariaLabel="Pagina siguiente de productos" title="Pagina siguiente de productos" />
+                </div>
+              }
             </div>
             <p-table
+              class="desktop-data"
               [value]="products()"
               [loading]="productsLoading()"
               dataKey="id"
@@ -292,8 +623,8 @@ interface LazyPageEvent {
                   </td>
                   <td>
                     <div class="flex justify-center gap-1">
-                      <p-button icon="pi pi-pencil" severity="info" [rounded]="true" [text]="true" (onClick)="openProductDialog(row)" title="Editar" />
-                      <p-button [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" [rounded]="true" [text]="true" (onClick)="toggleProductActive(row)" [title]="row.active ? 'Desactivar' : 'Activar'" />
+                      <p-button icon="pi pi-pencil" severity="info" [rounded]="true" [text]="true" (onClick)="openProductDialog(row)" [ariaLabel]="'Editar producto ' + row.name" [title]="'Editar producto ' + row.name" />
+                      <p-button [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" [rounded]="true" [text]="true" (onClick)="toggleProductActive(row)" [ariaLabel]="(row.active ? 'Desactivar producto ' : 'Activar producto ') + row.name" [title]="(row.active ? 'Desactivar producto ' : 'Activar producto ') + row.name" />
                     </div>
                   </td>
                 </tr>
@@ -307,6 +638,7 @@ interface LazyPageEvent {
                 </tr>
               </ng-template>
             </p-table>
+            }
           </div>
         }
 
@@ -317,7 +649,50 @@ interface LazyPageEvent {
               <span><i class="pi pi-tags mr-2"></i> Categorias</span>
               <span class="text-xs px-3 py-1 rounded-full" style="background: rgba(255,255,255,0.05); color: var(--ts-text-muted);">{{ categories().length }} registradas</span>
             </div>
-            <p-table [value]="categories()" [loading]="loading()" dataKey="id" [paginator]="true" [rows]="5" responsiveLayout="scroll">
+            @if (categoriesError()) {
+              <div class="section-state" role="alert" aria-live="polite">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                <strong>No se pudieron cargar las categorias.</strong>
+                <span>Revisa la conexion o intenta nuevamente.</span>
+                <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="reload()" ariaLabel="Reintentar carga de categorias" title="Reintentar carga de categorias" />
+              </div>
+            } @else {
+            <div class="mobile-data">
+              @if (loading()) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                  <strong>Cargando categorias...</strong>
+                  <span>Estamos actualizando el catalogo.</span>
+                </div>
+              } @else if (categories().length === 0) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-inbox" aria-hidden="true"></i>
+                  <strong>No hay categorias registradas.</strong>
+                  <span>Crea una categoria para organizar el inventario.</span>
+                </div>
+              } @else {
+                <div class="mobile-list" aria-label="Categorias en formato de tarjetas">
+                  @for (row of categories(); track row.id) {
+                    <article class="mobile-card">
+                      <div class="mobile-card-header">
+                        <div>
+                          <h3 class="mobile-card-title" [class.opacity-50]="!row.active">{{ row.name }}</h3>
+                          <p class="mobile-card-subtitle">Categoria de productos</p>
+                        </div>
+                        <span class="ts-badge" [class.ts-badge-success]="row.active" [class.ts-badge-danger]="!row.active">
+                          {{ row.active ? 'Activa' : 'Inactiva' }}
+                        </span>
+                      </div>
+                      <div class="mobile-actions">
+                        <p-button label="Editar" icon="pi pi-pencil" severity="info" size="small" [text]="true" (onClick)="openCategoryDialog(row)" [ariaLabel]="'Editar categoria ' + row.name" [title]="'Editar categoria ' + row.name" />
+                        <p-button [label]="row.active ? 'Desactivar' : 'Activar'" [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" size="small" [text]="true" (onClick)="toggleCategoryActive(row)" [ariaLabel]="(row.active ? 'Desactivar categoria ' : 'Activar categoria ') + row.name" [title]="(row.active ? 'Desactivar categoria ' : 'Activar categoria ') + row.name" />
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </div>
+            <p-table class="desktop-data" [value]="categories()" [loading]="loading()" dataKey="id" [paginator]="true" [rows]="5" responsiveLayout="scroll">
               <ng-template #header>
                 <tr>
                   <th>Nombre de Categoria</th>
@@ -335,8 +710,8 @@ interface LazyPageEvent {
                   </td>
                   <td>
                     <div class="flex justify-center gap-1">
-                      <p-button icon="pi pi-pencil" severity="info" [rounded]="true" [text]="true" (onClick)="openCategoryDialog(row)" title="Editar" />
-                      <p-button [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" [rounded]="true" [text]="true" (onClick)="toggleCategoryActive(row)" [title]="row.active ? 'Desactivar' : 'Activar'" />
+                      <p-button icon="pi pi-pencil" severity="info" [rounded]="true" [text]="true" (onClick)="openCategoryDialog(row)" [ariaLabel]="'Editar categoria ' + row.name" [title]="'Editar categoria ' + row.name" />
+                      <p-button [icon]="row.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [severity]="row.active ? 'danger' : 'success'" [rounded]="true" [text]="true" (onClick)="toggleCategoryActive(row)" [ariaLabel]="(row.active ? 'Desactivar categoria ' : 'Activar categoria ') + row.name" [title]="(row.active ? 'Desactivar categoria ' : 'Activar categoria ') + row.name" />
                     </div>
                   </td>
                 </tr>
@@ -347,6 +722,7 @@ interface LazyPageEvent {
                 </tr>
               </ng-template>
             </p-table>
+            }
           </div>
         }
 
@@ -358,48 +734,109 @@ interface LazyPageEvent {
               <span class="text-xs px-3 py-1 rounded-full" style="background: rgba(255,255,255,0.05); color: var(--ts-text-muted);">{{ ordersTotalElements() }} pedidos</span>
             </div>
             <div class="filters-bar">
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Estado
-                <p-select [options]="orderStatusOptions" optionLabel="label" optionValue="value" [(ngModel)]="orderFilters.status" [showClear]="true" appendTo="body" />
+                <p-select [options]="orderStatusOptions" optionLabel="label" optionValue="value" [(ngModel)]="orderFilters.status" (ngModelChange)="applyOrderFilters()" [showClear]="true" placeholder="Todos" appendTo="body" ariaLabel="Filtrar pedidos por estado" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-search filter-priority">
                 Usuario
-                <input pInputText type="search" [(ngModel)]="orderFilters.userName" (keyup.enter)="applyOrderFilters()" placeholder="Nombre cliente" />
+                <input pInputText type="search" [(ngModel)]="orderFilters.userName" (ngModelChange)="scheduleOrderFilters()" placeholder="Nombre cliente" aria-label="Filtrar pedidos por nombre de cliente" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Email
-                <input pInputText type="search" [(ngModel)]="orderFilters.userEmail" (keyup.enter)="applyOrderFilters()" placeholder="cliente@email.com" />
+                <input pInputText type="search" [(ngModel)]="orderFilters.userEmail" (ngModelChange)="scheduleOrderFilters()" placeholder="cliente@email.com" aria-label="Filtrar pedidos por email de cliente" />
               </label>
-              <label class="filter-label">
+              <label class="filter-label filter-priority">
                 Producto
-                <input pInputText type="search" [(ngModel)]="orderFilters.productName" (keyup.enter)="applyOrderFilters()" placeholder="Producto" />
-              </label>
-              <label class="filter-label">
-                Desde
-                <input class="native-date" type="date" [(ngModel)]="orderFilters.from" />
-              </label>
-              <label class="filter-label">
-                Hasta
-                <input class="native-date" type="date" [(ngModel)]="orderFilters.to" />
-              </label>
-              <label class="filter-label">
-                Total min.
-                <p-inputnumber [(ngModel)]="orderFilters.minTotal" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" />
-              </label>
-              <label class="filter-label">
-                Total max.
-                <p-inputnumber [(ngModel)]="orderFilters.maxTotal" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" />
-              </label>
-              <label class="filter-label">
-                Orden
-                <p-select [options]="orderSortOptions" optionLabel="label" optionValue="value" [(ngModel)]="orderFilters.sort" appendTo="body" />
+                <input pInputText type="search" [(ngModel)]="orderFilters.productName" (ngModelChange)="scheduleOrderFilters()" placeholder="Producto" aria-label="Filtrar pedidos por producto" />
               </label>
               <div class="filter-actions">
-                <p-button label="Filtrar" icon="pi pi-search" size="small" (onClick)="applyOrderFilters()" />
-                <p-button icon="pi pi-times" severity="secondary" [text]="true" [rounded]="true" size="small" (onClick)="clearOrderFilters()" />
+                <button type="button" class="filter-action-secondary" (click)="clearOrderFilters()" aria-label="Limpiar filtros de pedidos" title="Limpiar filtros de pedidos">
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                  Limpiar
+                </button>
               </div>
+              <label class="filter-label filter-small filter-secondary">
+                Desde
+                <input class="native-date" type="date" [(ngModel)]="orderFilters.from" (ngModelChange)="applyOrderFilters()" />
+              </label>
+              <label class="filter-label filter-small filter-secondary">
+                Hasta
+                <input class="native-date" type="date" [(ngModel)]="orderFilters.to" (ngModelChange)="applyOrderFilters()" />
+              </label>
+              <label class="filter-label filter-secondary">
+                Total min.
+                <p-inputnumber [(ngModel)]="orderFilters.minTotal" (ngModelChange)="scheduleOrderFilters()" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="S/ 0.00" />
+              </label>
+              <label class="filter-label filter-secondary">
+                Total max.
+                <p-inputnumber [(ngModel)]="orderFilters.maxTotal" (ngModelChange)="scheduleOrderFilters()" mode="decimal" [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="Sin limite" />
+              </label>
+              <label class="filter-label filter-secondary">
+                Orden
+                <p-select [options]="orderSortOptions" optionLabel="label" optionValue="value" [(ngModel)]="orderFilters.sort" (ngModelChange)="applyOrderFilters()" appendTo="body" ariaLabel="Ordenar pedidos" />
+              </label>
+            </div>
+            @if (ordersError()) {
+              <div class="section-state" role="alert" aria-live="polite">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                <strong>No se pudieron cargar los pedidos.</strong>
+                <span>Revisa la conexion o intenta nuevamente.</span>
+                <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="retryOrders()" ariaLabel="Reintentar carga de pedidos" title="Reintentar carga de pedidos" />
+              </div>
+            } @else {
+            <div class="mobile-data">
+              @if (ordersLoading()) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                  <strong>Cargando pedidos...</strong>
+                  <span>Estamos actualizando las ordenes.</span>
+                </div>
+              } @else if (orders().length === 0) {
+                <div class="section-state" aria-live="polite">
+                  <i class="pi pi-shopping-bag" aria-hidden="true"></i>
+                  <strong>No hay pedidos para mostrar.</strong>
+                  <span>Ajusta los filtros o espera nuevas compras.</span>
+                </div>
+              } @else {
+                <div class="mobile-list" aria-label="Pedidos en formato de tarjetas">
+                  @for (row of orders(); track row.id) {
+                    <article class="mobile-card">
+                      <div class="mobile-card-header">
+                        <div>
+                          <h3 class="mobile-card-title">Pedido #{{ row.id | number:'3.0-0' }}</h3>
+                          <p class="mobile-card-subtitle">{{ row.user.name }} · {{ row.user.email }}</p>
+                        </div>
+                        <span class="ts-badge status-badge" [ngClass]="orderStatusClass(row.status)">
+                          {{ orderStatusLabel(row.status) }}
+                        </span>
+                      </div>
+                      <div class="mobile-meta">
+                        <div><span>Fecha</span><strong>{{ row.createdAt | date:'short' }}</strong></div>
+                        <div><span>Total</span><strong class="text-[var(--ts-brand-light)]">S/ {{ row.total | number: '1.2-2' }}</strong></div>
+                      </div>
+                      @if (row.status === 'PENDING_PAYMENT') {
+                        <p class="mt-3 rounded border border-amber-500/30 bg-amber-500/10 p-2 text-xs font-bold text-amber-200">
+                          Pendiente de pago: aun no se puede entregar ni cancelar desde este panel.
+                        </p>
+                      }
+                      <div class="mobile-actions">
+                        <p-button label="Ver" icon="pi pi-eye" severity="info" size="small" [text]="true" (onClick)="openOrderDetails(row)" [ariaLabel]="'Ver detalles del pedido ' + row.id" [title]="'Ver detalles del pedido ' + row.id" />
+                        <p-button label="Entregar" icon="pi pi-check" severity="success" size="small" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'DELIVERED')" [ariaLabel]="'Marcar pedido ' + row.id + ' como entregado'" [title]="'Marcar pedido ' + row.id + ' como entregado'" />
+                        <p-button label="Cancelar" icon="pi pi-times" severity="danger" size="small" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'CANCELLED')" [ariaLabel]="'Cancelar pedido ' + row.id" [title]="'Cancelar pedido ' + row.id" />
+                      </div>
+                    </article>
+                  }
+                </div>
+                <div class="mobile-pager">
+                  <p-button label="Anterior" icon="pi pi-chevron-left" severity="secondary" size="small" [text]="true" [disabled]="orderPage() === 0 || ordersLoading()" (onClick)="previousOrdersPage()" ariaLabel="Pagina anterior de pedidos" title="Pagina anterior de pedidos" />
+                  <span class="text-xs font-bold text-[var(--ts-text-muted)]">Pagina {{ orderPage() + 1 }} de {{ orderTotalPages() }}</span>
+                  <p-button label="Siguiente" icon="pi pi-chevron-right" iconPos="right" severity="secondary" size="small" [text]="true" [disabled]="orderPage() >= orderTotalPages() - 1 || ordersLoading()" (onClick)="nextOrdersPage()" ariaLabel="Pagina siguiente de pedidos" title="Pagina siguiente de pedidos" />
+                </div>
+              }
             </div>
             <p-table
+              class="desktop-data"
               [value]="orders()"
               [loading]="ordersLoading()"
               dataKey="id"
@@ -431,18 +868,15 @@ interface LazyPageEvent {
                   <td>{{ row.createdAt | date:'short' }}</td>
                   <td class="font-bold text-[var(--ts-brand-light)]">S/ {{ row.total | number: '1.2-2' }}</td>
                   <td>
-                    <span class="ts-badge" 
-                          [class.ts-badge-success]="row.status === 'DELIVERED'" 
-                          [class.ts-badge-danger]="row.status === 'CANCELLED'"
-                          [class]="orderStatusClass(row.status)">
+                    <span class="ts-badge status-badge" [ngClass]="orderStatusClass(row.status)">
                       {{ orderStatusLabel(row.status) }}
                     </span>
                   </td>
                   <td>
                     <div class="flex justify-center gap-1">
-                      <p-button icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" (onClick)="openOrderDetails(row)" title="Ver Detalles" />
-                      <p-button icon="pi pi-check" severity="success" [rounded]="true" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'DELIVERED')" title="Marcar Entregado" />
-                      <p-button icon="pi pi-times" severity="danger" [rounded]="true" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'CANCELLED')" title="Cancelar Pedido" />
+                      <p-button icon="pi pi-eye" severity="info" [rounded]="true" [text]="true" (onClick)="openOrderDetails(row)" [ariaLabel]="'Ver detalles del pedido ' + row.id" [title]="'Ver detalles del pedido ' + row.id" />
+                      <p-button icon="pi pi-check" severity="success" [rounded]="true" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'DELIVERED')" [ariaLabel]="'Marcar pedido ' + row.id + ' como entregado'" [title]="'Marcar pedido ' + row.id + ' como entregado'" />
+                      <p-button icon="pi pi-times" severity="danger" [rounded]="true" [text]="true" [disabled]="row.status !== 'CONFIRMED'" (onClick)="updateOrderStatus(row.id, 'CANCELLED')" [ariaLabel]="'Cancelar pedido ' + row.id" [title]="'Cancelar pedido ' + row.id" />
                     </div>
                   </td>
                 </tr>
@@ -456,6 +890,7 @@ interface LazyPageEvent {
                 </tr>
               </ng-template>
             </p-table>
+            }
           </div>
         }
 
@@ -594,6 +1029,8 @@ export class AdminDashboardPage implements OnInit {
   private readonly orderApi = inject(OrderApiService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private productFilterTimer: ReturnType<typeof setTimeout> | null = null;
+  private orderFilterTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly activeTab = signal<'productos' | 'categorias' | 'pedidos'>('productos');
 
@@ -603,6 +1040,9 @@ export class AdminDashboardPage implements OnInit {
   readonly loading = signal(false);
   readonly productsLoading = signal(false);
   readonly ordersLoading = signal(false);
+  readonly categoriesError = signal(false);
+  readonly productsError = signal(false);
+  readonly ordersError = signal(false);
   readonly saving = signal(false);
   readonly productsTotalElements = signal(0);
   readonly ordersTotalElements = signal(0);
@@ -675,16 +1115,19 @@ export class AdminDashboardPage implements OnInit {
 
   reload(): void {
     this.loading.set(true);
+    this.categoriesError.set(false);
     this.categoryApi.list(true)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: categories => {
           this.categories.set(categories);
+          this.categoriesError.set(false);
           this.loadProducts({ page: this.productPage(), size: this.productPageSize() });
           this.loadOrders({ page: this.orderPage(), size: this.orderPageSize() });
           this.loading.set(false);
         },
         error: () => {
+          this.categoriesError.set(true);
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las categorias.' });
           this.loading.set(false);
         },
@@ -692,12 +1135,37 @@ export class AdminDashboardPage implements OnInit {
   }
 
   applyProductFilters(): void {
+    this.clearProductFilterTimer();
     this.loadProducts({ page: 0, size: this.productPageSize() });
   }
 
+  scheduleProductFilters(): void {
+    this.clearProductFilterTimer();
+    this.productFilterTimer = setTimeout(() => this.applyProductFilters(), 350);
+  }
+
   clearProductFilters(): void {
+    this.clearProductFilterTimer();
     this.productFilters = this.emptyProductFilters();
     this.loadProducts({ page: 0, size: this.productPageSize() });
+  }
+
+  retryProducts(): void {
+    this.loadProducts({ page: this.productPage(), size: this.productPageSize() });
+  }
+
+  productTotalPages(): number {
+    return Math.max(1, Math.ceil(this.productsTotalElements() / this.productPageSize()));
+  }
+
+  previousProductsPage(): void {
+    if (this.productPage() === 0) return;
+    this.loadProducts({ page: this.productPage() - 1, size: this.productPageSize() });
+  }
+
+  nextProductsPage(): void {
+    if (this.productPage() >= this.productTotalPages() - 1) return;
+    this.loadProducts({ page: this.productPage() + 1, size: this.productPageSize() });
   }
 
   onProductsLazyLoad(event: LazyPageEvent): void {
@@ -707,12 +1175,37 @@ export class AdminDashboardPage implements OnInit {
   }
 
   applyOrderFilters(): void {
+    this.clearOrderFilterTimer();
     this.loadOrders({ page: 0, size: this.orderPageSize() });
   }
 
+  scheduleOrderFilters(): void {
+    this.clearOrderFilterTimer();
+    this.orderFilterTimer = setTimeout(() => this.applyOrderFilters(), 350);
+  }
+
   clearOrderFilters(): void {
+    this.clearOrderFilterTimer();
     this.orderFilters = this.emptyOrderFilters();
     this.loadOrders({ page: 0, size: this.orderPageSize() });
+  }
+
+  retryOrders(): void {
+    this.loadOrders({ page: this.orderPage(), size: this.orderPageSize() });
+  }
+
+  orderTotalPages(): number {
+    return Math.max(1, Math.ceil(this.ordersTotalElements() / this.orderPageSize()));
+  }
+
+  previousOrdersPage(): void {
+    if (this.orderPage() === 0) return;
+    this.loadOrders({ page: this.orderPage() - 1, size: this.orderPageSize() });
+  }
+
+  nextOrdersPage(): void {
+    if (this.orderPage() >= this.orderTotalPages() - 1) return;
+    this.loadOrders({ page: this.orderPage() + 1, size: this.orderPageSize() });
   }
 
   onOrdersLazyLoad(event: LazyPageEvent): void {
@@ -875,9 +1368,10 @@ export class AdminDashboardPage implements OnInit {
 
   orderStatusClass(status: OrderStatus): string {
     switch (status) {
-      case 'PENDING_PAYMENT': return 'bg-amber-500/10 text-amber-500 border border-amber-500/30 font-bold px-2 py-1 rounded-full text-xs';
-      case 'CONFIRMED': return 'bg-blue-500/10 text-blue-500 border border-blue-500/30 font-bold px-2 py-1 rounded-full text-xs';
-      default: return '';
+      case 'PENDING_PAYMENT': return 'status-badge-pending';
+      case 'CONFIRMED': return 'status-badge-confirmed';
+      case 'DELIVERED': return 'ts-badge-success';
+      case 'CANCELLED': return 'ts-badge-danger';
     }
   }
 
@@ -886,6 +1380,7 @@ export class AdminDashboardPage implements OnInit {
     this.productPage.set(filters.page ?? 0);
     this.productPageSize.set(filters.size ?? 10);
     this.productsLoading.set(true);
+    this.productsError.set(false);
 
     this.productApi.list(filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -893,9 +1388,11 @@ export class AdminDashboardPage implements OnInit {
         next: response => {
           this.products.set(response.content);
           this.productsTotalElements.set(response.totalElements);
+          this.productsError.set(false);
           this.productsLoading.set(false);
         },
         error: () => {
+          this.productsError.set(true);
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los productos.' });
           this.productsLoading.set(false);
         },
@@ -907,6 +1404,7 @@ export class AdminDashboardPage implements OnInit {
     this.orderPage.set(filters.page ?? 0);
     this.orderPageSize.set(filters.size ?? 10);
     this.ordersLoading.set(true);
+    this.ordersError.set(false);
 
     this.orderApi.list(filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -914,9 +1412,11 @@ export class AdminDashboardPage implements OnInit {
         next: response => {
           this.orders.set(response.content);
           this.ordersTotalElements.set(response.totalElements);
+          this.ordersError.set(false);
           this.ordersLoading.set(false);
         },
         error: () => {
+          this.ordersError.set(true);
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los pedidos.' });
           this.ordersLoading.set(false);
         }
@@ -978,6 +1478,20 @@ export class AdminDashboardPage implements OnInit {
   private cleanString(value: string | undefined): string | undefined {
     const clean = value?.trim();
     return clean || undefined;
+  }
+
+  private clearProductFilterTimer(): void {
+    if (this.productFilterTimer) {
+      clearTimeout(this.productFilterTimer);
+      this.productFilterTimer = null;
+    }
+  }
+
+  private clearOrderFilterTimer(): void {
+    if (this.orderFilterTimer) {
+      clearTimeout(this.orderFilterTimer);
+      this.orderFilterTimer = null;
+    }
   }
 
   private emptyProduct(): ProductRequest {

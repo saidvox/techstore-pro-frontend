@@ -35,7 +35,7 @@ import { PaymentApiService } from '../../core/services/payment-api.service';
       <div class="mp-shell">
         <div class="mp-head">
           <div class="mp-logo">Mercado Pago</div>
-          <div class="mp-badge">Simulacion</div>
+          <div class="mp-badge">Sandbox local</div>
         </div>
 
         <div class="mp-body">
@@ -73,7 +73,7 @@ import { PaymentApiService } from '../../core/services/payment-api.service';
             </div>
 
             <div class="note">
-              Este checkout no hace cobros reales. Sirve para probar el flujo completo mientras esperas las credenciales de Mercado Pago.
+              Este checkout no hace cobros reales. Simula el flujo de Mercado Pago para validar pedido pendiente, aprobacion, rechazo y stock.
             </div>
 
             @if (paymentData.status === 'PENDING') {

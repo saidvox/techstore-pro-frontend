@@ -12,6 +12,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
+import { SliderModule } from 'primeng/slider';
 import { MessageService } from 'primeng/api';
 import { RouterLink } from '@angular/router';
 
@@ -40,7 +41,7 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
 @Component({
   selector: 'app-catalog-page',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, SkeletonModule, RouterLink],
+  imports: [DecimalPipe, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, SkeletonModule, SliderModule, RouterLink],
   styles: [`
     /* ── Layout ─────────────────────────────────────────── */
     .catalog-layout {
@@ -208,11 +209,12 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       color: #fff;
       border: none;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
+      transition: opacity 0.2s, transform 0.15s, background-color 0.2s;
       font-family: 'Outfit', sans-serif;
+      background: var(--ts-brand);
     }
-    .add-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
-    .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .add-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .add-btn:disabled { opacity: 1; background: var(--ts-surface-2) !important; color: var(--ts-text-muted) !important; cursor: not-allowed; border: 1px solid var(--ts-border); }
 
     /* badge stock */
     .stock-badge {
@@ -299,6 +301,77 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       font-size: 0.875rem !important;
       padding: 0.55rem 0.75rem !important;
     }
+
+    .price-filter-panel {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--ts-border);
+      border-radius: 12px;
+      padding: 0.85rem;
+    }
+    .price-filter-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .price-filter-range {
+      color: var(--ts-text);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .price-filter-range span {
+      color: var(--ts-text-dim);
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      margin-bottom: 0.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .price-slider-wrap {
+      padding: 0.25rem 0.35rem 0.85rem;
+    }
+    .price-filter-limits {
+      color: var(--ts-text-dim);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-top: 0.85rem;
+    }
+    ::ng-deep .price-slider.p-slider {
+      background: rgba(255,255,255,0.08) !important;
+      border-radius: 999px !important;
+      height: 8px !important;
+      border: 1px solid rgba(255,255,255,0.06) !important;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
+    }
+    ::ng-deep .price-slider.p-slider .p-slider-range {
+      background: linear-gradient(90deg, #6c63ff, #00d4aa) !important;
+      border-radius: 999px !important;
+    }
+    ::ng-deep .price-slider.p-slider .p-slider-handle {
+      background: var(--ts-text) !important;
+      border: 3px solid var(--ts-brand) !important;
+      width: 18px !important;
+      height: 18px !important;
+      border-radius: 50% !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35), 0 0 0 4px rgba(108,99,255,0.14) !important;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s !important;
+    }
+    ::ng-deep .price-slider.p-slider .p-slider-handle:hover {
+      transform: scale(1.15) !important;
+      border-color: #00d4aa !important;
+      box-shadow: 0 5px 16px rgba(0,0,0,0.4), 0 0 0 7px rgba(0,212,170,0.16) !important;
+    }
+    ::ng-deep .price-slider.p-slider .p-slider-handle:focus {
+      box-shadow: 0 5px 16px rgba(0,0,0,0.4), 0 0 0 7px rgba(108,99,255,0.28) !important;
+      outline: none !important;
+    }
   `],
   template: `
   <div style="background: var(--ts-surface); min-height: 100vh;">
@@ -315,12 +388,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
             <span class="text-sm" style="color: var(--ts-text-muted);">
               {{ store.totalElements() }} productos
             </span>
-            <button class="ts-btn-brand px-4 py-2 text-sm flex items-center gap-2"
-              [class.opacity-60]="store.loading()"
-              (click)="store.reload()">
-              <i class="pi pi-refresh text-xs" [class.animate-spin]="store.loading()"></i>
-              Actualizar
-            </button>
           </div>
         </div>
       </div>
@@ -377,31 +444,60 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
           <hr class="divider">
 
           <!-- Precio -->
-          <div>
-            <p class="sidebar-title mb-3">Precio</p>
+          <div class="price-filter-panel">
+            <div class="price-filter-head">
+              <p class="sidebar-title mb-0">Precio</p>
+              <p class="price-filter-range">
+                <span>Rango actual</span>
+                S/ {{ priceRange[0] | number:'1.0-0' }} - S/ {{ priceRange[1] | number:'1.0-0' }}
+              </p>
+            </div>
+            
+            <div class="price-slider-wrap">
+              <p-slider 
+                [(ngModel)]="priceRange" 
+                [range]="true" 
+                [min]="0" 
+                [max]="10000" 
+                [step]="50"
+                styleClass="price-slider"
+                ariaLabel="Filtrar por rango de precio"
+                (onChange)="previewPriceRange()"
+                (onSlideEnd)="commitPriceRange()"
+              />
+              <div class="price-filter-limits" aria-hidden="true">
+                <span>S/ 0</span>
+                <span>S/ 10,000</span>
+              </div>
+            </div>
+            
             <div class="grid grid-cols-2 gap-3">
               <label class="filter-label">
-                <span>Min.</span>
                 <p-inputnumber
                   [(ngModel)]="minPrice"
                   mode="decimal"
                   [min]="0"
-                  [minFractionDigits]="2"
+                  [max]="maxPrice || 10000"
+                  [minFractionDigits]="0"
                   [maxFractionDigits]="2"
-                  (onInput)="applyFilters()"
-                  placeholder="S/ 0.00"
+                  (onInput)="previewPriceInputs()"
+                  (onBlur)="commitPriceInputs()"
+                  (onKeyDown)="commitPriceInputOnEnter($event)"
+                  placeholder="Min"
                 />
               </label>
               <label class="filter-label">
-                <span>Max.</span>
                 <p-inputnumber
                   [(ngModel)]="maxPrice"
                   mode="decimal"
-                  [min]="0"
-                  [minFractionDigits]="2"
+                  [min]="minPrice || 0"
+                  [max]="10000"
+                  [minFractionDigits]="0"
                   [maxFractionDigits]="2"
-                  (onInput)="applyFilters()"
-                  placeholder="S/ 0.00"
+                  (onInput)="previewPriceInputs()"
+                  (onBlur)="commitPriceInputs()"
+                  (onKeyDown)="commitPriceInputOnEnter($event)"
+                  placeholder="Max"
                 />
               </label>
             </div>
@@ -518,12 +614,11 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
                         </div>
                         <button
                           class="add-btn"
-                          [style.background]="product.stock > 0 ? getCatColor(product.category) : '#3D3D5A'"
                           [disabled]="product.stock === 0"
                           (click)="$event.preventDefault(); $event.stopPropagation(); addToCart(product)"
                         >
                           <i class="pi pi-shopping-cart" style="font-size:0.75rem;"></i>
-                          Agregar
+                          {{ product.stock === 0 ? 'Agotado' : 'Agregar' }}
                         </button>
                       </div>
                     </div>
@@ -569,6 +664,7 @@ export class CatalogPage implements OnInit {
   category: string | null = null;
   minPrice: number | null = null;
   maxPrice: number | null = null;
+  priceRange: number[] = [0, 10000];
   sort = 'name,asc';
   readonly sortOptions = [
     { label: 'Nombre A-Z', value: 'name,asc' },
@@ -583,6 +679,7 @@ export class CatalogPage implements OnInit {
     this.category = current.category || null;
     this.minPrice = current.minPrice ?? null;
     this.maxPrice = current.maxPrice ?? null;
+    this.priceRange = [this.minPrice ?? 0, this.maxPrice ?? 10000];
     this.sort = current.sort || 'name,asc';
 
     this.store.loadCategories();
@@ -605,11 +702,40 @@ export class CatalogPage implements OnInit {
     });
   }
 
+  previewPriceRange(): void {
+    this.syncPricesFromRange();
+  }
+
+  commitPriceRange(): void {
+    this.syncPricesFromRange();
+    this.applyFilters();
+  }
+
+  previewPriceInputs(): void {
+    const min = this.minPrice ?? 0;
+    const max = this.maxPrice ?? 10000;
+    this.priceRange = [min, Math.max(min, max)];
+  }
+
+  commitPriceInputs(): void {
+    this.previewPriceInputs();
+    this.applyFilters();
+  }
+
+  commitPriceInputOnEnter(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    this.commitPriceInputs();
+  }
+
   clearFilters(): void {
     this.q = '';
     this.category = null;
     this.minPrice = null;
     this.maxPrice = null;
+    this.priceRange = [0, 10000];
     this.sort = 'name,asc';
     this.store.applyFilters({
       q: undefined,
@@ -660,5 +786,10 @@ export class CatalogPage implements OnInit {
 
   getCatColor(category: string): string {
     return (CAT_CFG[category] ?? DEF_CFG).color;
+  }
+
+  private syncPricesFromRange(): void {
+    this.minPrice = this.priceRange[0];
+    this.maxPrice = this.priceRange[1];
   }
 }

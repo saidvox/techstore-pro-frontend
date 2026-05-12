@@ -54,6 +54,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/payments/mercado-pago-simulation-page').then(m => m.MercadoPagoSimulationPage),
       },
       {
+        path: 'checkout/mercado-pago/retorno',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/payments/mercado-pago-return-page').then(m => m.MercadoPagoReturnPage),
+      },
+      {
         path: 'pedidos',
         canActivate: [authGuard],
         loadComponent: () => import('./features/orders/orders-page').then(m => m.OrdersPage),

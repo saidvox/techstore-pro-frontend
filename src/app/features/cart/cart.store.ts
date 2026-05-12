@@ -1,5 +1,6 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { Cart } from '../../core/models/cart.model';
 import { Product } from '../../core/models/product.model';
@@ -193,21 +194,48 @@ export class CartStore {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: checkout => {
-        this._localItems.set([]);
-        this.cart.set({ items: [], total: 0 });
         this.loading.set(false);
         this.messageService.add({ 
-          severity: 'success', 
-          summary: '¡Pedido exitoso!', 
-          detail: 'Tu orden ha sido procesada correctamente.',
-          life: 4000
+          severity: 'info',
+          summary: 'Redirigiendo a Mercado Pago',
+          detail: 'Completa el pago para confirmar tu pedido.',
+          life: 2500
         });
         window.location.assign(checkout.checkoutUrl);
       },
-      error: () => {
-        this.error.set('Ocurrió un error al procesar tu pedido. Intenta nuevamente.');
+      error: error => {
+        this.error.set(this.checkoutErrorMessage(error));
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo iniciar el pago',
+          detail: this.error() ?? 'Intenta nuevamente.',
+          life: 5000
+        });
         this.loading.set(false);
       }
     });
+  }
+
+  private checkoutErrorMessage(error: unknown): string {
+    const fallback = 'Ocurrió un error al procesar tu pedido. Intenta nuevamente.';
+
+    if (!(error instanceof HttpErrorResponse)) {
+      return fallback;
+    }
+
+    const details = error.error?.details;
+    if (Array.isArray(details) && typeof details[0] === 'string') {
+      return details[0];
+    }
+
+    if (typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+
+    if (typeof error.error?.error === 'string') {
+      return error.error.error;
+    }
+
+    return fallback;
   }
 }

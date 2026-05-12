@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -187,6 +187,29 @@ import { OrdersStore } from './orders.store';
     .summary-label { font-size: 0.9rem; font-weight: 700; color: var(--ts-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
     .summary-total { font-size: 1.5rem; font-weight: 900; color: var(--ts-brand); }
     
+    /* ── Banner de pago exitoso ─────────────────────────── */
+    .payment-success-banner {
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.35);
+      border-radius: 14px; padding: 1rem 1.25rem; margin-top: 1.5rem;
+      animation: slide-in .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes slide-in {
+      from { transform: translateY(-12px); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    .payment-success-banner .banner-icon {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(16,185,129,.25); color: #10B981;
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+    .banner-dismiss {
+      margin-left: auto; background: none; border: none; cursor: pointer;
+      color: #10B981; opacity: .7; padding: 4px; border-radius: 6px;
+      transition: opacity .2s;
+    }
+    .banner-dismiss:hover { opacity: 1; }
+
     /* ── Paginación ──────────────────────────────────────── */
     .pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding-top: 2rem; }
     .page-btn {
@@ -232,6 +255,20 @@ import { OrdersStore } from './orders.store';
       <!-- Main Content -->
       <div class="max-w-3xl mx-auto px-4 sm:px-6">
         
+        <!-- Banner Pago Exitoso -->
+        @if (paymentSuccess()) {
+          <div class="payment-success-banner">
+            <div class="banner-icon"><i class="pi pi-check" aria-hidden="true"></i></div>
+            <div>
+              <p class="font-bold text-sm" style="color: #10B981;">¡Pago aprobado exitosamente!</p>
+              <p class="text-xs" style="color: #10B981; opacity: .8;">Tu pedido ha sido confirmado. Aparece a continuación en tu historial.</p>
+            </div>
+            <button class="banner-dismiss" (click)="paymentSuccess.set(false)" aria-label="Cerrar">
+              <i class="pi pi-times text-sm"></i>
+            </button>
+          </div>
+        }
+
         <!-- Error -->
         @if (store.error()) {
           <div class="flex items-center gap-3 p-4 rounded-xl mt-6" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
@@ -369,11 +406,16 @@ import { OrdersStore } from './orders.store';
 })
 export class OrdersPage implements OnInit {
   readonly store = inject(OrdersStore);
+  private readonly route = inject(ActivatedRoute);
 
   statusFilter: OrderStatus | null = null;
   
   detailsVisible = false;
   selectedOrder: Order | null = null;
+
+  /** Muestra el banner de éxito cuando el usuario viene de un pago aprobado */
+  readonly paymentSuccess = signal(false);
+  private bannerTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     const currentStatus = this.store.filters().status;
@@ -381,6 +423,18 @@ export class OrdersPage implements OnInit {
     
     // Al cargar la vista de pedidos, asegurarse de pedir desde la pag 0
     this.store.load({ page: 0 });
+
+    // Detectar si viene de un pago aprobado (observable, más fiable en SPA)
+    this.route.queryParams.subscribe(params => {
+      const isSuccess = params['payment_success'] === '1' || params['success'] === 'true';
+      
+      if (isSuccess) {
+        this.paymentSuccess.set(true);
+        // Auto-cerrar el banner a los 6 segundos
+        if (this.bannerTimer) clearTimeout(this.bannerTimer);
+        this.bannerTimer = setTimeout(() => this.paymentSuccess.set(false), 6000);
+      }
+    });
   }
 
   onFilterChange(): void {

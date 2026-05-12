@@ -55,7 +55,15 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [
+              "reformist-grandma-smog.ngrok-free.dev",
+              ".ngrok-free.dev"
+            ]
+          },
+
           "configurations": {
+
             "production": {
               "buildTarget": "techstore-pro-frontend:build:production"
             },

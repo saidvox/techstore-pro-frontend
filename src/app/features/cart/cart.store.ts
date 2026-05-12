@@ -96,6 +96,12 @@ export class CartStore {
     this._localItems.update(items => items.filter(i => i.productId !== productId));
   }
 
+  /** Limpia el carrito local (sin llamar al backend). Úsalo tras completar el checkout. */
+  removeAll(): void {
+    this._localItems.set([]);
+  }
+
+
   // ─── API Cart methods (checkout autenticado) ─────────────
   load(): void {
     this.loading.set(true);

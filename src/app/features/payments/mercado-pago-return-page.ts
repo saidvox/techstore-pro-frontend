@@ -7,6 +7,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { Payment } from '../../core/models/payment.model';
 import { PaymentApiService } from '../../core/services/payment-api.service';
+import { CartStore } from '../cart/cart.store';
+
 
 @Component({
   selector: 'app-mercado-pago-return-page',
@@ -78,6 +80,8 @@ export class MercadoPagoReturnPage implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly cartStore = inject(CartStore);
+
   readonly loading = signal(false);
   readonly payment = signal<Payment | null>(null);
   readonly error = signal<string | null>(null);
@@ -104,6 +108,15 @@ export class MercadoPagoReturnPage implements OnInit {
         next: payment => {
           this.payment.set(payment);
           this.loading.set(false);
+
+          // Si el pago fue aprobado, limpiar carrito y redirigir
+          if (payment.status === 'APPROVED') {
+            this.cartStore.clear();
+            setTimeout(() => {
+              void this.router.navigate(['/pedidos'], { queryParams: { payment_success: 1 } });
+            }, 500);
+          }
+
         },
         error: () => {
           this.error.set('No se pudo sincronizar el retorno de Mercado Pago. Verifica que el backend siga encendido y que tu sesion sea la misma.');
@@ -111,6 +124,7 @@ export class MercadoPagoReturnPage implements OnInit {
         },
       });
   }
+
 
   statusTitle(status: Payment['status']): string {
     switch (status) {

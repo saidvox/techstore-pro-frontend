@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -8,6 +8,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { Payment } from '../../core/models/payment.model';
 import { PaymentApiService } from '../../core/services/payment-api.service';
+import { CartStore } from '../cart/cart.store';
 
 @Component({
   selector: 'app-mercado-pago-simulation-page',
@@ -29,19 +30,66 @@ import { PaymentApiService } from '../../core/services/payment-api.service';
     .item:last-child { border-bottom: 0; padding-bottom: 0; }
     .actions { display: grid; gap: .75rem; }
     .note { font-size: .8rem; line-height: 1.45; color: var(--ts-text-muted); border: 1px dashed var(--ts-border); padding: .75rem; border-radius: 12px; }
+
+    /* ── Banner de éxito ── */
+    .success-banner {
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+      padding: 1.5rem; text-align: center;
+    }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(16,185,129,.18); color: #10B981;
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
+      animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes pop-in {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .redirect-bar {
+      width: 100%; height: 4px; border-radius: 999px;
+      background: rgba(16,185,129,.2); overflow: hidden;
+    }
+    .redirect-fill {
+      height: 100%; background: #10B981; border-radius: 999px;
+      animation: shrink 3s linear forwards;
+    }
+    @keyframes shrink {
+      from { width: 100%; }
+      to   { width: 0%; }
+    }
   `],
   template: `
     <div class="checkout-wrap">
       <div class="mp-shell">
         <div class="mp-head">
           <div class="mp-logo">Mercado Pago</div>
-          <div class="mp-badge">Sandbox local</div>
+          <div class="mp-badge">Simulación de prueba</div>
         </div>
 
         <div class="mp-body">
           @if (loading()) {
             <p-skeleton width="100%" height="90px" borderRadius="14px"></p-skeleton>
             <p-skeleton width="100%" height="180px" borderRadius="14px"></p-skeleton>
+          } @else if (approved()) {
+            <!-- ── ÉXITO: Pago aprobado, cuenta regresiva ── -->
+            <div class="success-banner">
+              <div class="success-icon">
+                <i class="pi pi-check" aria-hidden="true"></i>
+              </div>
+              <div>
+                <h1 class="text-2xl font-black" style="color: var(--ts-text);">¡Pago aprobado!</h1>
+                <p class="text-sm muted mt-1">Tu pedido fue confirmado correctamente.</p>
+              </div>
+              <div class="redirect-bar">
+                <div class="redirect-fill"></div>
+              </div>
+              <p class="text-sm muted">Redirigiendo a tus pedidos en {{ countdown() }}s...</p>
+              <a routerLink="/pedidos" [queryParams]="{payment_success: 1}"
+                 class="ts-btn-brand px-6 py-3 rounded-xl text-center font-bold no-underline" style="width:100%;">
+                <i class="pi pi-arrow-right text-sm"></i> Ver mis pedidos ahora
+              </a>
+            </div>
           } @else if (payment(); as paymentData) {
             <div>
               <p class="text-xs font-bold uppercase tracking-widest muted">Pedido #{{ paymentData.order.id }}</p>
@@ -73,20 +121,31 @@ import { PaymentApiService } from '../../core/services/payment-api.service';
             </div>
 
             <div class="note">
-              Este checkout no hace cobros reales. Simula el flujo de Mercado Pago para validar pedido pendiente, aprobacion, rechazo y stock.
+              <i class="pi pi-info-circle" style="color:var(--ts-brand);"></i>
+              Checkout de <strong>simulación</strong> — no se realizan cobros reales. Usa los botones de abajo para aprobar o rechazar el pago y verificar el flujo completo.
             </div>
 
             @if (paymentData.status === 'PENDING') {
               <div class="actions">
-                <p-button label="Aprobar pago simulado" icon="pi pi-check" severity="success" [loading]="processing()" (onClick)="approve(paymentData.externalReference)" />
-                <p-button label="Rechazar pago simulado" icon="pi pi-times" severity="danger" [outlined]="true" [loading]="processing()" (onClick)="reject(paymentData.externalReference)" />
+                <p-button
+                  label="✅ Aprobar pago simulado"
+                  severity="success"
+                  [loading]="processing()"
+                  (onClick)="approve(paymentData.externalReference)" />
+                <p-button
+                  label="❌ Rechazar pago simulado"
+                  severity="danger"
+                  [outlined]="true"
+                  [loading]="processing()"
+                  (onClick)="reject(paymentData.externalReference)" />
               </div>
             } @else {
               <div class="summary">
                 <p class="font-bold" style="color: var(--ts-text);">Pago {{ paymentData.status }}</p>
                 <p class="text-sm muted mt-1">{{ paymentData.detail }}</p>
               </div>
-              <a routerLink="/pedidos" class="ts-btn-brand px-4 py-3 rounded-xl text-center font-bold no-underline">Ver mis pedidos</a>
+              <a routerLink="/pedidos" [queryParams]="{payment_success: paymentData.status === 'APPROVED' ? 1 : 0}"
+                 class="ts-btn-brand px-4 py-3 rounded-xl text-center font-bold no-underline">Ver mis pedidos</a>
             }
           } @else {
             <div class="summary">
@@ -101,17 +160,22 @@ import { PaymentApiService } from '../../core/services/payment-api.service';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MercadoPagoSimulationPage implements OnInit {
+export class MercadoPagoSimulationPage implements OnInit, OnDestroy {
   private readonly paymentApi = inject(PaymentApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly messageService = inject(MessageService);
+  private readonly cartStore = inject(CartStore);
 
   readonly payment = signal<Payment | null>(null);
   readonly loading = signal(false);
   readonly processing = signal(false);
   readonly error = signal<string | null>(null);
+  readonly approved = signal(false);
+  readonly countdown = signal(3);
+
+  private countdownInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     const externalReference = this.route.snapshot.queryParamMap.get('externalReference');
@@ -122,6 +186,10 @@ export class MercadoPagoSimulationPage implements OnInit {
     this.load(externalReference);
   }
 
+  ngOnDestroy(): void {
+    this.clearCountdown();
+  }
+
   approve(externalReference: string): void {
     this.processing.set(true);
     this.paymentApi.approveSimulation(externalReference)
@@ -130,8 +198,12 @@ export class MercadoPagoSimulationPage implements OnInit {
         next: payment => {
           this.payment.set(payment);
           this.processing.set(false);
-          this.messageService.add({ severity: 'success', summary: 'Pago aprobado', detail: 'Tu pedido fue confirmado.' });
-          void this.router.navigateByUrl('/pedidos');
+          // Limpiar el carrito tanto local como en el servidor
+          this.cartStore.clear();
+          // Mostrar banner de éxito con cuenta regresiva
+          this.approved.set(true);
+          this.messageService.add({ severity: 'success', summary: '¡Pago aprobado!', detail: 'Tu pedido fue confirmado.' });
+          this.startCountdown();
         },
         error: () => {
           this.error.set('No se pudo aprobar el pago simulado.');
@@ -149,7 +221,7 @@ export class MercadoPagoSimulationPage implements OnInit {
           this.payment.set(payment);
           this.processing.set(false);
           this.messageService.add({ severity: 'warn', summary: 'Pago rechazado', detail: 'El pedido fue cancelado.' });
-          void this.router.navigateByUrl('/pedidos');
+          void this.router.navigate(['/pedidos'], { queryParams: { payment_success: 0 } });
         },
         error: () => {
           this.error.set('No se pudo rechazar el pago simulado.');
@@ -173,5 +245,25 @@ export class MercadoPagoSimulationPage implements OnInit {
           this.loading.set(false);
         },
       });
+  }
+
+  private startCountdown(): void {
+    this.countdown.set(3);
+    this.countdownInterval = setInterval(() => {
+      const current = this.countdown();
+      if (current <= 1) {
+        this.clearCountdown();
+        void this.router.navigate(['/pedidos'], { queryParams: { payment_success: 1 } });
+      } else {
+        this.countdown.set(current - 1);
+      }
+    }, 1000);
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownInterval !== null) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
+    }
   }
 }

@@ -196,7 +196,7 @@ export class CartStore {
         concatMap(item => this.cartApi.upsertItem(item.productId, { quantity: item.quantity })),
         toArray()
       )),
-      switchMap(() => this.paymentApi.startMercadoPagoSimulation()),
+      switchMap(() => this.paymentApi.startMercadoPagoCheckout()),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: checkout => {

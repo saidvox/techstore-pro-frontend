@@ -14,8 +14,8 @@ export class PaymentApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = inject(API_BASE_URL);
 
-  startMercadoPagoSimulation() {
-    return this.http.post<CheckoutResponse>(`${this.apiUrl}/pagos/checkout/mercado-pago/simulacion`, {});
+  startMercadoPagoCheckout() {
+    return this.http.post<CheckoutResponse>(`${this.apiUrl}/pagos/checkout/mercado-pago`, {});
   }
 
   detail(externalReference: string) {

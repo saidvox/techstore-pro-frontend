@@ -6,6 +6,11 @@ import { PageResponse } from '../models/page.model';
 import { Product, ProductFilters, ProductRequest } from '../models/product.model';
 import { toHttpParams } from '../utils/http-params.util';
 
+export interface ProductImageUploadResponse {
+  fileId: string;
+  imageUrl: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductApiService {
   private readonly http = inject(HttpClient);
@@ -23,6 +28,12 @@ export class ProductApiService {
 
   create(request: ProductRequest) {
     return this.http.post<Product>(`${this.apiUrl}/productos`, request);
+  }
+
+  uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ProductImageUploadResponse>(`${this.apiUrl}/productos/imagenes`, formData);
   }
 
   update(id: number, request: ProductRequest) {

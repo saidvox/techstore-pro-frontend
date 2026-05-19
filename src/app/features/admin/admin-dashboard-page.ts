@@ -1,5 +1,6 @@
 import { DecimalPipe, DatePipe, NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
@@ -20,6 +21,7 @@ import { CategoryApiService } from '../../core/services/category-api.service';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { SelectOption } from '../../shared/models/select-option.model';
+import { displayImageUrl } from '../../core/utils/image-url.util';
 
 interface LazyPageEvent {
   first?: number | null;
@@ -543,7 +545,7 @@ interface LazyPageEvent {
                     <article class="mobile-card">
                       <div class="mobile-card-header">
                         <div class="flex min-w-0 gap-3">
-                          <img class="h-14 w-14 shrink-0 rounded-lg object-cover" [src]="row.imageUrl || fallbackImage" [alt]="row.name" style="background: rgba(255,255,255,0.05);" />
+                          <img class="h-14 w-14 shrink-0 rounded-lg object-cover" [src]="imageSrc(row.imageUrl) || fallbackImage" [alt]="row.name" style="background: rgba(255,255,255,0.05);" />
                           <div class="min-w-0">
                             <h3 class="mobile-card-title" [class.opacity-50]="!row.active">{{ row.name }}</h3>
                             <p class="mobile-card-subtitle">{{ row.description }}</p>
@@ -599,7 +601,7 @@ interface LazyPageEvent {
               <ng-template #body let-row>
                 <tr>
                   <td>
-                    <img class="h-14 w-14 rounded-lg object-cover" [src]="row.imageUrl || fallbackImage" [alt]="row.name" style="background: rgba(255,255,255,0.05);" />
+                    <img class="h-14 w-14 rounded-lg object-cover" [src]="imageSrc(row.imageUrl) || fallbackImage" [alt]="row.name" style="background: rgba(255,255,255,0.05);" />
                   </td>
                   <td>
                     <div class="font-bold text-sm mb-1" [class.opacity-50]="!row.active">{{ row.name }}</div>
@@ -923,6 +925,35 @@ interface LazyPageEvent {
             URL de imagen (Opcional)
             <input pInputText name="imageUrl" type="url" [(ngModel)]="product.imageUrl" maxlength="1000" placeholder="https://..." />
           </label>
+          <div class="form-label">
+            <span>Subir imagen</span>
+            <div class="flex flex-col gap-2 rounded-lg border border-[var(--ts-border)] bg-[rgba(255,255,255,0.02)] p-3">
+              <input
+                class="text-sm text-[var(--ts-text-muted)]"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                [disabled]="imageUploading() || saving()"
+                (change)="uploadProductImage($event)"
+              />
+              @if (imageUploading()) {
+                <span class="text-xs text-[var(--ts-brand)]">Subiendo imagen...</span>
+              }
+              @if (product.imageUrl) {
+                <div class="flex items-center gap-3 rounded-lg border border-[var(--ts-border)] bg-[rgba(255,255,255,0.03)] p-2">
+                  <img
+                    class="h-24 w-24 shrink-0 rounded-lg object-contain bg-white"
+                    [src]="imageSrc(product.imageUrl) || fallbackImage"
+                    alt="Vista previa del producto"
+                    (error)="onImagePreviewError($event)"
+                  />
+                  <div class="min-w-0 text-xs text-[var(--ts-text-muted)]">
+                    <div class="font-bold text-[var(--ts-text)]">Vista previa</div>
+                    <div class="truncate">{{ product.imageUrl }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
           <label class="form-label">
             Descripcion
             <textarea pTextarea name="description" rows="3" [(ngModel)]="product.description" required maxlength="500"></textarea>
@@ -940,7 +971,7 @@ interface LazyPageEvent {
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <p-button label="Cancelar" type="button" severity="secondary" [text]="true" (onClick)="showProductDialog.set(false)" />
-          <p-button [label]="editProductId() ? 'Actualizar' : 'Guardar'" type="submit" icon="pi pi-check" [loading]="saving()" />
+          <p-button [label]="editProductId() ? 'Actualizar' : 'Guardar'" type="submit" icon="pi pi-check" [loading]="saving()" [disabled]="imageUploading()" />
         </div>
       </form>
     </p-dialog>
@@ -1044,6 +1075,7 @@ export class AdminDashboardPage implements OnInit {
   readonly productsError = signal(false);
   readonly ordersError = signal(false);
   readonly saving = signal(false);
+  readonly imageUploading = signal(false);
   readonly productsTotalElements = signal(0);
   readonly ordersTotalElements = signal(0);
   readonly productPage = signal(0);
@@ -1242,6 +1274,53 @@ export class AdminDashboardPage implements OnInit {
       this.categoryName = '';
     }
     this.showCategoryDialog.set(true);
+  }
+
+  uploadProductImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.messageService.add({ severity: 'warn', summary: 'Archivo invalido', detail: 'Selecciona una imagen valida.' });
+      return;
+    }
+
+    this.imageUploading.set(true);
+    this.productApi.uploadImage(file)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: response => {
+          this.product.imageUrl = response.imageUrl;
+          this.imageUploading.set(false);
+          this.messageService.add({ severity: 'success', summary: 'Imagen subida', detail: 'La imagen se guardo en Google Drive.' });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.imageUploading.set(false);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.errorDetail(error, 'No se pudo subir la imagen.') });
+        },
+      });
+  }
+
+  imageSrc(url: string | null | undefined): string | null {
+    return displayImageUrl(url);
+  }
+
+  onImagePreviewError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    image.src = this.fallbackImage;
+  }
+
+  private errorDetail(error: HttpErrorResponse, fallback: string): string {
+    const details = error.error?.details;
+    if (Array.isArray(details) && details.length > 0) {
+      return details.join(' ');
+    }
+    if (typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    return fallback;
   }
 
   saveCategory(): void {

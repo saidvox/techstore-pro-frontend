@@ -10,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import { Product } from '../../core/models/product.model';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { CartStore } from '../cart/cart.store';
+import { displayImageUrl } from '../../core/utils/image-url.util';
 
 const CAT_CFG: Record<string, { icon: string; color: string }> = {
   'Laptops':        { icon: 'pi pi-desktop',    color: '#6C63FF' },
@@ -195,7 +196,7 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
             <!-- Izquierda: Imagen -->
             <div class="pdp-img-box">
               @if (p.imageUrl) {
-                <img [src]="p.imageUrl" [alt]="p.name" class="pdp-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                <img [src]="imageSrc(p.imageUrl)" [alt]="p.name" class="pdp-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                 <div class="pdp-img-wrap" style="display:none;position:absolute;inset:0;">
                   <i [class]="getCatIcon(p.category) + ' pdp-icon-fallback'" [style.color]="getCatColor(p.category)"></i>
                 </div>
@@ -256,7 +257,7 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
                   <a [routerLink]="['/catalogo', rp.id]" class="p-card">
                     <div class="p-card-img-wrap">
                       @if (rp.imageUrl) {
-                        <img [src]="rp.imageUrl" [alt]="rp.name" class="p-card-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                        <img [src]="imageSrc(rp.imageUrl)" [alt]="rp.name" class="p-card-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                         <div class="p-card-img-wrap" style="display:none;position:absolute;inset:0;">
                           <i [class]="getCatIcon(rp.category)" [style.color]="getCatColor(rp.category)" style="font-size:3rem"></i>
                         </div>
@@ -356,5 +357,9 @@ export class ProductDetailPage implements OnInit {
 
   getCatColor(category: string): string {
     return (CAT_CFG[category] ?? DEF_CFG).color;
+  }
+
+  imageSrc(url: string | null | undefined): string | null {
+    return displayImageUrl(url);
   }
 }

@@ -14,6 +14,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { Product } from '../../core/models/product.model';
 import { ProductApiService } from '../../core/services/product-api.service';
+import { displayImageUrl } from '../../core/utils/image-url.util';
 
 // ── Configuración de las 3 categorías del carrusel ────────────────────────────
 interface CategoryFeature {
@@ -337,7 +338,7 @@ const HERO_STATS = [
                 @for (item of carouselItems(group.products); track item._key) {
                   <a class="c-card" [routerLink]="['/catalogo', item.id]">
                     @if (item.imageUrl) {
-                      <img [src]="item.imageUrl" [alt]="item.name" class="c-img" loading="lazy"
+                      <img [src]="imageSrc(item.imageUrl)" [alt]="item.name" class="c-img" loading="lazy"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                       <div class="c-img-placeholder" style="display:none;">
                         <i [class]="getCatIcon(group.category)" [style.color]="getCatColor(group.category)"></i>
@@ -477,5 +478,9 @@ export class HomePage implements OnInit {
 
   getCatColor(category: string): string {
     return FEATURED_CATEGORIES.find(c => c.name === category)?.color ?? '#6C63FF';
+  }
+
+  imageSrc(url: string | null | undefined): string | null {
+    return displayImageUrl(url);
   }
 }

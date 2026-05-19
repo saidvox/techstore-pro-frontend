@@ -19,6 +19,7 @@ import { RouterLink } from '@angular/router';
 import { Product } from '../../core/models/product.model';
 import { CartStore } from '../cart/cart.store';
 import { CatalogStore } from './catalog.store';
+import { displayImageUrl } from '../../core/utils/image-url.util';
 
 // ── Mapa ícono/color por categoría ─────────────────────────────────────────
 const CAT_CFG: Record<string, { icon: string; color: string; bg: string }> = {
@@ -575,7 +576,7 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
                     <div class="p-card-img-wrap">
                       @if (product.imageUrl) {
                         <img
-                          [src]="product.imageUrl"
+                          [src]="imageSrc(product.imageUrl)"
                           [alt]="product.name"
                           class="p-card-img"
                           loading="lazy"
@@ -786,6 +787,10 @@ export class CatalogPage implements OnInit {
 
   getCatColor(category: string): string {
     return (CAT_CFG[category] ?? DEF_CFG).color;
+  }
+
+  imageSrc(url: string | null | undefined): string | null {
+    return displayImageUrl(url);
   }
 
   private syncPricesFromRange(): void {

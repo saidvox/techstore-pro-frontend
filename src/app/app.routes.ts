@@ -23,6 +23,10 @@ export const routes: Routes = [
         path: 'oauth2/success',
         loadComponent: () => import('./features/auth/oauth2-success-page').then(m => m.OAuth2SuccessPage),
       },
+      {
+        path: 'verificar-email',
+        loadComponent: () => import('./features/auth/verify-email-page').then(m => m.VerifyEmailPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'login' },
     ],
   },

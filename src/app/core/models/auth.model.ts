@@ -17,8 +17,22 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface VerificationRequiredResponse {
+  email: string;
+  verificationRequired: boolean;
+  message: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
 export interface SessionState {
   token: string | null;
   user: User | null;
 }
-

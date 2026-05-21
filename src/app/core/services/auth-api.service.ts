@@ -2,7 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
 import { API_BASE_URL } from '../config/api-url.token';
-import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  ResendVerificationRequest,
+  VerificationRequiredResponse,
+  VerifyEmailRequest,
+} from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
@@ -14,7 +21,15 @@ export class AuthApiService {
   }
 
   register(request: RegisterRequest) {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, request);
+    return this.http.post<VerificationRequiredResponse>(`${this.apiUrl}/auth/register`, request);
+  }
+
+  verifyEmail(request: VerifyEmailRequest) {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, request);
+  }
+
+  resendVerification(request: ResendVerificationRequest) {
+    return this.http.post<VerificationRequiredResponse>(`${this.apiUrl}/auth/resend-verification`, request);
   }
 
   googleLoginUrl(): string {

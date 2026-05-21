@@ -220,7 +220,7 @@ import { AuthStore } from './auth.store';
 
           <div class="form-group ts-pass-reg">
             <label class="form-label">Contraseña</label>
-            <p-password name="password" [(ngModel)]="password" [feedback]="true" [toggleMask]="true" placeholder="Mínimo 8 caracteres" required />
+            <p-password name="password" [(ngModel)]="password" [feedback]="true" [toggleMask]="true" placeholder="Mínimo 6 caracteres" [minlength]="6" required />
           </div>
 
           <button type="submit" class="btn-submit" [disabled]="auth.loading()">
@@ -258,7 +258,11 @@ export class RegisterPage {
 
   register(): void {
     if (!this.name || !this.email || !this.password) return;
-    this.auth.register({ name: this.name, email: this.email, password: this.password });
+    this.auth.register({
+      name: this.name.trim(),
+      email: this.email.trim().toLowerCase(),
+      password: this.password,
+    });
   }
 
   registerWithGoogle(): void {

@@ -220,6 +220,97 @@ import { OrdersStore } from './orders.store';
     .page-btn:hover:not(:disabled) { border-color: var(--ts-brand); color: var(--ts-brand); }
     .page-btn.active { background: var(--ts-brand); border-color: var(--ts-brand); color: #fff; }
     .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .orders-wrap {
+        padding-bottom: 2rem;
+      }
+      .orders-header {
+        padding: 1.25rem 0;
+      }
+      .orders-filter-actions {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      ::ng-deep .orders-filter-actions .p-select {
+        width: 100% !important;
+      }
+      .orders-filter-actions .ts-btn-brand {
+        min-height: 44px;
+        width: 100%;
+      }
+      .order-list {
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .order-card {
+        border-radius: 14px;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .order-head,
+      .order-body {
+        align-items: stretch;
+      }
+      .order-id {
+        font-size: 1.1rem;
+      }
+      .order-total {
+        font-size: 1.35rem;
+      }
+      .order-status,
+      .btn-details {
+        justify-content: center;
+        min-height: 44px;
+        width: 100%;
+      }
+      .payment-success-banner {
+        align-items: flex-start;
+        padding: 0.9rem;
+      }
+      .banner-dismiss {
+        min-height: 36px;
+        min-width: 36px;
+      }
+      .pagination {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .page-btn {
+        height: 40px;
+        min-width: 40px;
+      }
+      .item-row {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 1rem;
+      }
+      .item-icon {
+        height: 44px;
+        width: 44px;
+      }
+      .item-info {
+        min-width: 0;
+      }
+      .item-price {
+        padding-left: 60px;
+        text-align: left;
+        width: 100%;
+      }
+      .modal-summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 1rem;
+      }
+      ::ng-deep .ts-order-dialog .p-dialog-footer {
+        padding: 1rem !important;
+      }
+      ::ng-deep .ts-order-dialog .p-dialog-footer .p-button {
+        justify-content: center !important;
+        width: 100% !important;
+      }
+    }
   `],
   template: `
     <div class="orders-wrap">
@@ -233,7 +324,7 @@ import { OrdersStore } from './orders.store';
               <h1 class="text-3xl font-black" style="color: var(--ts-text);">Mis Pedidos</h1>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="orders-filter-actions flex items-center gap-3">
               <!-- Filtro de estado -->
               <p-select
                 [options]="store.statusOptions"

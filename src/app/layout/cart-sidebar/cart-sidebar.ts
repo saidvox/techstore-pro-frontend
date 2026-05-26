@@ -191,6 +191,39 @@ const CAT_COLOR: Record<string, string> = {
       transition: border-color 0.2s, color 0.2s;
     }
     .btn-outline:hover { border-color: var(--ts-brand); color: var(--ts-text); }
+
+    @media (max-width: 480px) {
+      ::ng-deep .ts-cart-drawer .p-drawer {
+        max-width: 100vw !important;
+        width: 100vw !important;
+      }
+      ::ng-deep .ts-cart-drawer .p-drawer-header,
+      ::ng-deep .ts-cart-drawer .p-drawer-content,
+      ::ng-deep .ts-cart-drawer .p-drawer-footer {
+        padding: 1rem !important;
+      }
+      .cart-item {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 48px 1fr;
+      }
+      .item-right {
+        align-items: center;
+        border-top: 1px solid var(--ts-border);
+        flex-direction: row;
+        grid-column: 1 / -1;
+        justify-content: space-between;
+        padding-top: 0.65rem;
+      }
+      .qty-btn {
+        height: 34px;
+        width: 34px;
+      }
+      .btn-checkout,
+      .btn-outline {
+        min-height: 44px;
+      }
+    }
   `],
   template: `
   <div class="ts-cart-drawer">

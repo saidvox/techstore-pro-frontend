@@ -939,7 +939,7 @@ interface LazyPageEvent {
                 <span class="text-xs text-[var(--ts-brand)]">Subiendo imagen...</span>
               }
               @if (product.imageUrl) {
-                <div class="flex items-center gap-3 rounded-lg border border-[var(--ts-border)] bg-[rgba(255,255,255,0.03)] p-2">
+                <div class="product-preview-row flex items-center gap-3 rounded-lg border border-[var(--ts-border)] bg-[rgba(255,255,255,0.03)] p-2">
                   <img
                     class="h-24 w-24 shrink-0 rounded-lg object-contain bg-white"
                     [src]="imageSrc(product.imageUrl) || fallbackImage"
@@ -958,7 +958,7 @@ interface LazyPageEvent {
             Descripcion
             <textarea pTextarea name="description" rows="3" [(ngModel)]="product.description" required maxlength="500"></textarea>
           </label>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label class="form-label">
               Precio (S/)
               <p-inputnumber name="price" [(ngModel)]="product.price" mode="decimal" [min]="0.01" [minFractionDigits]="2" [maxFractionDigits]="2" styleClass="w-full" />
@@ -969,7 +969,7 @@ interface LazyPageEvent {
             </label>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="dialog-actions flex justify-end gap-3 mt-6">
           <p-button label="Cancelar" type="button" severity="secondary" [text]="true" (onClick)="showProductDialog.set(false)" />
           <p-button [label]="editProductId() ? 'Actualizar' : 'Guardar'" type="submit" icon="pi pi-check" [loading]="saving()" [disabled]="imageUploading()" />
         </div>
@@ -995,7 +995,7 @@ interface LazyPageEvent {
             <input pInputText name="categoryName" [(ngModel)]="categoryName" required maxlength="80" placeholder="Ej. Laptops" autofocus />
           </label>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="dialog-actions flex justify-end gap-3 mt-6">
           <p-button label="Cancelar" type="button" severity="secondary" [text]="true" (onClick)="showCategoryDialog.set(false)" />
           <p-button [label]="editCategoryId() ? 'Actualizar' : 'Guardar'" type="submit" icon="pi pi-check" [loading]="saving()" />
         </div>
@@ -1015,7 +1015,7 @@ interface LazyPageEvent {
     >
       @if (selectedOrder(); as order) {
         <div class="mt-2">
-          <div class="flex justify-between items-center mb-4 pb-4 border-b border-[var(--ts-border)]">
+          <div class="order-detail-head flex justify-between items-center mb-4 pb-4 border-b border-[var(--ts-border)]">
             <div>
               <p class="text-sm font-bold text-[var(--ts-text-muted)]">Cliente</p>
               <p class="font-bold">{{ order.user.name }} ({{ order.user.email }})</p>
@@ -1029,7 +1029,7 @@ interface LazyPageEvent {
           <h3 class="font-bold mb-3 text-[var(--ts-text)]">Productos ({{ order.items.length }})</h3>
           <div class="space-y-3 max-h-64 overflow-y-auto pr-2">
             @for (item of order.items; track item.productId) {
-              <div class="flex justify-between items-center bg-[var(--ts-surface-2)] p-3 rounded-lg border border-[var(--ts-border)]">
+              <div class="order-detail-item flex justify-between items-center bg-[var(--ts-surface-2)] p-3 rounded-lg border border-[var(--ts-border)]">
                 <div>
                   <p class="font-bold text-sm">{{ item.productName }}</p>
                   <p class="text-xs text-[var(--ts-text-muted)]">{{ item.quantity }}x S/ {{ item.unitPrice | number:'1.2-2' }}</p>
@@ -1041,13 +1041,13 @@ interface LazyPageEvent {
             }
           </div>
           
-          <div class="mt-4 pt-4 border-t border-[var(--ts-border)] flex justify-between items-center">
+          <div class="order-detail-total mt-4 pt-4 border-t border-[var(--ts-border)] flex justify-between items-center">
             <span class="font-bold uppercase tracking-widest text-[var(--ts-text-muted)]">Total a Pagar</span>
             <span class="text-2xl font-black text-[var(--ts-brand)]">S/ {{ order.total | number:'1.2-2' }}</span>
           </div>
         </div>
       }
-      <div class="flex justify-end mt-6">
+      <div class="dialog-actions flex justify-end mt-6">
         <p-button label="Cerrar" type="button" severity="secondary" (onClick)="showOrderDetailsDialog.set(false)" />
       </div>
     </p-dialog>

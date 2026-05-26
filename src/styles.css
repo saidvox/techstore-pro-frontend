@@ -39,6 +39,7 @@
 html {
   color-scheme: dark;
   scroll-behavior: smooth;
+  min-width: 320px;
 }
 
 body {
@@ -47,6 +48,25 @@ body {
   color: var(--ts-text);
   font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+.p-button {
+  touch-action: manipulation;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
@@ -200,6 +220,38 @@ body {
   color: var(--ts-text) !important;
 }
 
+@media (max-width: 640px) {
+  .p-toast {
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+  }
+
+  .p-toast .p-toast-message {
+    padding: 1rem !important;
+  }
+
+  .p-dialog {
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    margin: 0.5rem !important;
+  }
+
+  .p-dialog .p-dialog-content {
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
+  }
+
+  .p-select-overlay {
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  .p-button,
+  .ts-btn-brand {
+    min-height: 44px;
+  }
+}
+
 /* ─── PrimeNG Select Overrides ───────────────────────────── */
 .p-select {
   background: var(--ts-card) !important;
@@ -265,4 +317,3 @@ body {
   color: var(--ts-brand) !important;
   font-weight: 700 !important;
 }
-

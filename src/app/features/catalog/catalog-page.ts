@@ -53,7 +53,11 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     }
     @media (max-width: 900px) {
       .catalog-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
+      .sidebar {
+        display: flex;
+        position: static;
+        top: auto;
+      }
     }
 
     /* ── Sidebar ─────────────────────────────────────────── */
@@ -373,6 +377,86 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       box-shadow: 0 5px 16px rgba(0,0,0,0.4), 0 0 0 7px rgba(108,99,255,0.28) !important;
       outline: none !important;
     }
+    .catalog-title-row {
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .catalog-layout {
+        gap: 1rem;
+      }
+      .catalog-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .sidebar {
+        border-radius: 14px;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .cat-pill {
+        min-height: 40px;
+      }
+      .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .p-card {
+        border-radius: 14px;
+      }
+      .p-card-img-wrap {
+        height: 130px;
+      }
+      .p-card-img {
+        padding: 10px;
+      }
+      .p-card-body {
+        gap: 0.4rem;
+        padding: 0.85rem;
+      }
+      .p-card-name {
+        font-size: 0.86rem;
+      }
+      .p-card-desc {
+        font-size: 0.72rem;
+      }
+      .p-card-footer {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .p-card-price {
+        font-size: 1rem;
+      }
+      .add-btn {
+        justify-content: center;
+        min-height: 40px;
+        padding: 0.55rem 0.65rem;
+        width: 100%;
+      }
+      .stock-badge {
+        font-size: 0.58rem;
+        right: 7px;
+        top: 7px;
+      }
+      .pagination {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .page-btn {
+        height: 40px;
+        min-width: 40px;
+      }
+      .price-filter-limits {
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   `],
   template: `
   <div style="background: var(--ts-surface); min-height: 100vh;">
@@ -380,7 +464,7 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     <!-- Page Header -->
     <div style="background: var(--ts-surface-2); border-bottom: 1px solid var(--ts-border);">
       <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6">
-        <div class="flex items-center justify-between">
+        <div class="catalog-title-row flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color: var(--ts-brand);">Productos</p>
             <h1 class="text-3xl font-black" style="color: var(--ts-text);">Catálogo</h1>

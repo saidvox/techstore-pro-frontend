@@ -105,6 +105,22 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
             }
           </div>
         </div>
+
+        <nav class="mobile-nav md:hidden" aria-label="Navegacion movil">
+          <a routerLink="/catalogo" routerLinkActive="nav-active" class="mobile-nav-link">
+            <i class="pi pi-th-large text-xs"></i> Catalogo
+          </a>
+          @if (session.user()) {
+            <a routerLink="/pedidos" routerLinkActive="nav-active" class="mobile-nav-link">
+              <i class="pi pi-receipt text-xs"></i> Mis pedidos
+            </a>
+          }
+          @if (session.isAdmin()) {
+            <a routerLink="/admin" routerLinkActive="nav-active" class="mobile-nav-link nav-admin">
+              <i class="pi pi-shield text-xs"></i> Admin
+            </a>
+          }
+        </nav>
       </header>
 
       <!-- Contenido principal -->
@@ -149,6 +165,31 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
     .nav-admin:hover {
       background: rgba(16, 185, 129, 0.08);
       color: var(--ts-accent);
+    }
+    .mobile-nav {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0 0.75rem 0.75rem;
+      scrollbar-width: none;
+    }
+    .mobile-nav::-webkit-scrollbar {
+      display: none;
+    }
+    .mobile-nav-link {
+      align-items: center;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--ts-border);
+      border-radius: 10px;
+      color: var(--ts-text-muted);
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 0.82rem;
+      font-weight: 800;
+      gap: 0.4rem;
+      min-height: 40px;
+      padding: 0.55rem 0.8rem;
+      text-decoration: none;
     }
     ::ng-deep .ts-confirm-dialog {
       background: var(--ts-card) !important;
@@ -245,6 +286,17 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
     ::ng-deep .ts-confirm-dialog .p-confirmdialog-reject-button:hover {
       border-color: var(--ts-text-muted) !important;
       color: var(--ts-text) !important;
+    }
+    @media (max-width: 480px) {
+      ::ng-deep .ts-confirm-dialog .p-dialog-footer {
+        flex-direction: column-reverse !important;
+      }
+      ::ng-deep .ts-confirm-dialog .p-dialog-footer .p-button,
+      ::ng-deep .ts-confirm-dialog .p-confirmdialog-accept-button,
+      ::ng-deep .ts-confirm-dialog .p-confirmdialog-reject-button {
+        justify-content: center !important;
+        width: 100% !important;
+      }
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

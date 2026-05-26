@@ -180,6 +180,30 @@ import { AuthStore } from './auth.store';
       30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
       40%, 60% { transform: translate3d(4px, 0, 0); }
     }
+
+    @media (max-width: 480px) {
+      .auth-bg {
+        align-items: flex-start;
+        min-height: calc(100dvh - 112px);
+        overflow-y: auto;
+        padding: 4.5rem 0.9rem 1.25rem;
+      }
+      .auth-card {
+        border-radius: 16px;
+        max-width: 100%;
+        padding: 1.5rem;
+      }
+      .auth-header {
+        margin-bottom: 1.5rem;
+      }
+      .auth-title {
+        font-size: 1.65rem;
+      }
+      .btn-submit,
+      .btn-google {
+        min-height: 44px;
+      }
+    }
   `],
   template: `
     <div class="auth-bg">

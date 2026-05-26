@@ -117,6 +117,31 @@ import { AuthSessionService } from '../../core/services/auth-session.service';
       text-align: center;
       text-decoration: none;
     }
+
+    @media (max-width: 480px) {
+      .auth-bg {
+        align-items: flex-start;
+        min-height: calc(100dvh - 112px);
+        overflow-y: auto;
+        padding: 4.5rem 0.9rem 1.25rem;
+      }
+      .auth-card {
+        border-radius: 16px;
+        max-width: 100%;
+        padding: 1.5rem;
+      }
+      .auth-title {
+        font-size: 1.65rem;
+      }
+      .code-input {
+        font-size: 1.2rem;
+        letter-spacing: 0.18em;
+      }
+      .btn-submit,
+      .btn-secondary {
+        min-height: 44px;
+      }
+    }
   `],
   template: `
     <section class="auth-bg">

@@ -135,13 +135,81 @@ const CAT_COLOR: Record<string, string> = {
 
     /* perks */
     .perk{ display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:var(--ts-text-muted); }
+
+    .cart-title-row,
+    .cart-list-head {
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .page-header {
+        padding: 1rem;
+      }
+      .layout {
+        gap: 1rem;
+      }
+      .cart-title-row,
+      .cart-list-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .cart-list-head .btn-danger {
+        width: 100% !important;
+      }
+      .item-row {
+        border-radius: 14px;
+        display: grid;
+        gap: 0.85rem;
+        grid-template-columns: 64px 1fr;
+        padding: 1rem;
+      }
+      .item-img {
+        font-size: 1.45rem;
+        height: 64px;
+        width: 64px;
+      }
+      .item-right {
+        align-items: center;
+        border-top: 1px solid var(--ts-border);
+        flex-direction: row;
+        grid-column: 1 / -1;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+      }
+      .item-sub {
+        font-size: 1rem;
+      }
+      .qty-row {
+        flex-wrap: wrap;
+      }
+      .qty-btn {
+        height: 36px;
+        width: 36px;
+      }
+      .summary-box {
+        border-radius: 14px;
+        padding: 1rem;
+        position: static;
+      }
+      .summary-row {
+        gap: 1rem;
+      }
+      .summary-total-val {
+        font-size: 1.2rem;
+      }
+      .btn-main,
+      .btn-secondary,
+      .btn-danger {
+        min-height: 44px;
+      }
+    }
   `],
   template: `
   <div class="page-wrap">
 
     <!-- Page header -->
     <div class="page-header">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="cart-title-row max-w-7xl mx-auto flex items-center justify-between">
         <div>
           <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:var(--ts-brand);">Compra</p>
           <h1 class="text-3xl font-black" style="color:var(--ts-text);">Mi carrito</h1>
@@ -181,7 +249,7 @@ const CAT_COLOR: Record<string, string> = {
           <div style="display:flex; flex-direction:column; gap:1rem;">
 
             <!-- Cabecera lista -->
-            <div class="flex items-center justify-between">
+            <div class="cart-list-head flex items-center justify-between">
               <h2 class="text-lg font-black" style="color:var(--ts-text);">
                 Productos seleccionados
               </h2>

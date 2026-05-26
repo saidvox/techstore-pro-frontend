@@ -160,6 +160,66 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
 
     .skel { background: var(--ts-card); border-radius: 16px; animation: skel-pulse 1.8s ease-in-out infinite; }
     @keyframes skel-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    @media (max-width: 640px) {
+      .pdp-wrap {
+        padding-bottom: 2rem;
+      }
+      .pdp-nav {
+        padding: 0.9rem 0;
+      }
+      .pdp-main {
+        gap: 1.25rem;
+        margin-top: 1.25rem;
+      }
+      .pdp-img-box {
+        border-radius: 16px;
+        height: min(72vw, 320px);
+      }
+      .pdp-img {
+        padding: 1rem;
+      }
+      .pdp-icon-fallback {
+        font-size: 4rem;
+      }
+      .pdp-info {
+        gap: 1rem;
+      }
+      .pdp-title {
+        font-size: clamp(1.7rem, 9vw, 2.15rem);
+      }
+      .pdp-price-box {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .pdp-price {
+        font-size: clamp(1.8rem, 9vw, 2.2rem);
+      }
+      .pdp-stock-box {
+        align-items: flex-start;
+      }
+      .btn-add {
+        font-size: 1rem;
+        min-height: 48px;
+      }
+      .related-sec {
+        margin-top: 2.5rem;
+      }
+      .related-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .p-card-img-wrap {
+        height: 130px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .related-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   `],
   template: `
     <div class="pdp-wrap">

@@ -13,6 +13,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { SliderModule } from 'primeng/slider';
+import { DrawerModule } from 'primeng/drawer';
 import { MessageService } from 'primeng/api';
 import { RouterLink } from '@angular/router';
 
@@ -42,9 +43,8 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
 @Component({
   selector: 'app-catalog-page',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, SkeletonModule, SliderModule, RouterLink],
+  imports: [DecimalPipe, FormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule, SkeletonModule, SliderModule, DrawerModule, RouterLink],
   styles: [`
-    /* ── Layout ─────────────────────────────────────────── */
     .catalog-layout {
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -53,14 +53,9 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     }
     @media (max-width: 900px) {
       .catalog-layout { grid-template-columns: 1fr; }
-      .sidebar {
-        display: flex;
-        position: static;
-        top: auto;
-      }
+      .sidebar { display: none; }
     }
 
-    /* ── Sidebar ─────────────────────────────────────────── */
     .sidebar {
       position: sticky;
       top: 80px;
@@ -105,7 +100,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       border-top: 1px solid var(--ts-border);
       margin: 0;
     }
-    /* Cat pills */
     .cat-pill {
       display: flex;
       align-items: center;
@@ -125,14 +119,12 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     .cat-pill:hover { background: var(--ts-surface-2); color: var(--ts-text); }
     .cat-pill.active { background: rgba(108,99,255,0.12); border-color: rgba(108,99,255,0.35); color: var(--ts-brand); }
 
-    /* ── Grid productos ──────────────────────────────────── */
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 1.25rem;
     }
 
-    /* ── Product card ────────────────────────────────────── */
     .p-card {
       background: var(--ts-card);
       border: 1px solid var(--ts-border);
@@ -221,7 +213,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     .add-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
     .add-btn:disabled { opacity: 1; background: var(--ts-surface-2) !important; color: var(--ts-text-muted) !important; cursor: not-allowed; border: 1px solid var(--ts-border); }
 
-    /* badge stock */
     .stock-badge {
       position: absolute;
       top: 10px;
@@ -234,7 +225,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       border-radius: 999px;
     }
 
-    /* ── Paginación ──────────────────────────────────────── */
     .pagination {
       display: flex;
       align-items: center;
@@ -262,7 +252,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     .page-btn.active { background: var(--ts-brand); border-color: var(--ts-brand); color: #fff; }
     .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* ── Skeleton ────────────────────────────────────────── */
     .skel {
       border-radius: 16px;
       background: var(--ts-card);
@@ -275,7 +264,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       50%      { opacity: 0.35; }
     }
 
-    /* override PrimeNG select/input dentro del sidebar */
     ::ng-deep .ts-select .p-select {
       background: var(--ts-surface-2) !important;
       border: 1px solid var(--ts-border) !important;
@@ -380,6 +368,67 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     .catalog-title-row {
       gap: 1rem;
     }
+    .mobile-filter-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(108,99,255,0.13), rgba(0,212,170,0.05));
+      border: 1px solid rgba(108,99,255,0.28);
+      border-radius: 16px;
+      padding: 0.9rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+    }
+    .mobile-filter-button {
+      align-items: center;
+      background: var(--ts-brand);
+      border: 0;
+      border-radius: 12px;
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      gap: 0.55rem;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.7rem 1rem;
+      width: 100%;
+    }
+    .mobile-filter-summary {
+      color: var(--ts-text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      justify-content: center;
+      margin-top: 0.7rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .mobile-filter-summary span {
+      background: rgba(255,255,255,0.055);
+      border: 1px solid var(--ts-border);
+      border-radius: 999px;
+      padding: 0.3rem 0.55rem;
+    }
+    ::ng-deep .catalog-filter-drawer {
+      background: var(--ts-card) !important;
+      border-right: 1px solid var(--ts-border) !important;
+      color: var(--ts-text) !important;
+      max-width: min(90vw, 360px) !important;
+      width: min(90vw, 360px) !important;
+    }
+    ::ng-deep .catalog-filter-drawer .p-drawer-header {
+      border-bottom: 1px solid var(--ts-border);
+      padding: 1rem 1.15rem;
+    }
+    ::ng-deep .catalog-filter-drawer .p-drawer-content {
+      padding: 1rem;
+    }
+    .drawer-filter-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
     @media (max-width: 640px) {
       .catalog-layout {
@@ -389,36 +438,32 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
         align-items: flex-start;
         flex-direction: column;
       }
-      .sidebar {
-        border-radius: 14px;
-        gap: 1rem;
-        padding: 1rem;
-      }
+      .mobile-filter-card { display: block; }
       .cat-pill {
         min-height: 40px;
       }
       .products-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.75rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
       }
       .p-card {
         border-radius: 14px;
       }
       .p-card-img-wrap {
-        height: 130px;
+        height: 190px;
       }
       .p-card-img {
-        padding: 10px;
+        padding: 14px;
       }
       .p-card-body {
-        gap: 0.4rem;
-        padding: 0.85rem;
+        gap: 0.5rem;
+        padding: 1rem;
       }
       .p-card-name {
-        font-size: 0.86rem;
+        font-size: 0.96rem;
       }
       .p-card-desc {
-        font-size: 0.72rem;
+        font-size: 0.78rem;
       }
       .p-card-footer {
         align-items: stretch;
@@ -451,12 +496,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
         gap: 0.5rem;
       }
     }
-
-    @media (max-width: 420px) {
-      .products-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   `],
   template: `
   <div style="background: var(--ts-surface); min-height: 100vh;">
@@ -480,6 +519,150 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
 
     <!-- Main layout -->
     <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6">
+      <div class="mobile-filter-card">
+        <button class="mobile-filter-button" type="button" (click)="filtersOpen.set(true)">
+          <i class="pi pi-sliders-h"></i>
+          Filtros y orden
+        </button>
+        <div class="mobile-filter-summary">
+          <span>{{ category || 'Todas las categorias' }}</span>
+          <span>S/ {{ priceRange[0] | number:'1.0-0' }} - S/ {{ priceRange[1] | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <p-drawer
+        [visible]="filtersOpen()"
+        (visibleChange)="filtersOpen.set($event)"
+        position="left"
+        styleClass="catalog-filter-drawer"
+        header="Filtrar catalogo">
+        <div class="drawer-filter-content">
+          <p class="sidebar-title">Filtros</p>
+
+          <label class="filter-label">
+            <span>Buscar</span>
+            <div style="position:relative;">
+              <i class="pi pi-search" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--ts-text-dim);font-size:0.8rem;"></i>
+              <input
+                class="filter-input"
+                style="padding-left:2.2rem !important;"
+                type="search"
+                placeholder="Nombre o descripcion..."
+                [(ngModel)]="q"
+                (keyup.enter)="applyFilters()"
+              />
+            </div>
+          </label>
+
+          <hr class="divider">
+
+          <div>
+            <p class="sidebar-title mb-3">Categoria</p>
+            <div class="flex flex-col gap-1">
+              <button class="cat-pill" [class.active]="!category" (click)="selectCategory(null)">
+                <i class="pi pi-th-large text-xs"></i> Todas
+              </button>
+              @for (opt of store.categoryOptions(); track opt.value) {
+                <button
+                  class="cat-pill"
+                  [class.active]="category === opt.value"
+                  (click)="selectCategory(opt.value)"
+                >
+                  <i [class]="getCatIcon(opt.value) + ' text-xs'" [style.color]="getCatColor(opt.value)"></i>
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="price-filter-panel">
+            <div class="price-filter-head">
+              <p class="sidebar-title mb-0">Precio</p>
+              <p class="price-filter-range">
+                <span>Rango actual</span>
+                S/ {{ priceRange[0] | number:'1.0-0' }} - S/ {{ priceRange[1] | number:'1.0-0' }}
+              </p>
+            </div>
+
+            <div class="price-slider-wrap">
+              <p-slider
+                [(ngModel)]="priceRange"
+                [range]="true"
+                [min]="0"
+                [max]="10000"
+                [step]="50"
+                styleClass="price-slider"
+                ariaLabel="Filtrar por rango de precio"
+                (onChange)="previewPriceRange()"
+                (onSlideEnd)="commitPriceRange()"
+              />
+              <div class="price-filter-limits" aria-hidden="true">
+                <span>S/ 0</span>
+                <span>S/ 10,000</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <label class="filter-label">
+                <p-inputnumber
+                  [(ngModel)]="minPrice"
+                  mode="decimal"
+                  [min]="0"
+                  [max]="maxPrice || 10000"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="2"
+                  (onInput)="previewPriceInputs()"
+                  (onBlur)="commitPriceInputs()"
+                  (onKeyDown)="commitPriceInputOnEnter($event)"
+                  placeholder="Min"
+                />
+              </label>
+              <label class="filter-label">
+                <p-inputnumber
+                  [(ngModel)]="maxPrice"
+                  mode="decimal"
+                  [min]="minPrice || 0"
+                  [max]="10000"
+                  [minFractionDigits]="0"
+                  [maxFractionDigits]="2"
+                  (onInput)="previewPriceInputs()"
+                  (onBlur)="commitPriceInputs()"
+                  (onKeyDown)="commitPriceInputOnEnter($event)"
+                  placeholder="Max"
+                />
+              </label>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <label class="filter-label">
+            <span>Ordenar por</span>
+            <p-select
+              [options]="sortOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="sort"
+              (onChange)="applyFilters()"
+              placeholder="Orden"
+              styleClass="ts-select"
+              appendTo="body"
+            />
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button class="cat-pill" (click)="clearFilters()" style="justify-content:center; border-color: var(--ts-border);">
+              <i class="pi pi-times text-xs"></i> Limpiar
+            </button>
+            <button class="cat-pill active" (click)="filtersOpen.set(false)" style="justify-content:center;">
+              <i class="pi pi-check text-xs"></i> Ver productos
+            </button>
+          </div>
+        </div>
+      </p-drawer>
+
       <div class="catalog-layout">
 
         <!-- ══════════════════════════════════
@@ -751,6 +934,7 @@ export class CatalogPage implements OnInit {
   maxPrice: number | null = null;
   priceRange: number[] = [0, 10000];
   sort = 'name,asc';
+  readonly filtersOpen = signal(false);
   readonly sortOptions = [
     { label: 'Nombre A-Z', value: 'name,asc' },
     { label: 'Nombre Z-A', value: 'name,desc' },

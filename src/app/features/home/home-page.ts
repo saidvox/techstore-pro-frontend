@@ -61,6 +61,40 @@ const HERO_STATS = [
   standalone: true,
   imports: [RouterLink, DecimalPipe, SkeletonModule],
   styles: [`
+    .home-hero {
+      min-height: calc(100svh - 4rem);
+      padding-block: clamp(3.5rem, 7vw, 6rem);
+    }
+    .home-hero-title {
+      font-size: clamp(2.65rem, 7vw, 4.8rem);
+      line-height: 0.98;
+    }
+    .home-hero-copy {
+      font-size: clamp(1rem, 2.4vw, 1.25rem);
+    }
+    .home-hero-actions {
+      margin-bottom: clamp(2.5rem, 6vw, 4rem);
+    }
+    .home-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 640px) {
+      .home-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 480px) {
+      .home-hero {
+        justify-content: flex-start;
+        padding-top: 2.25rem;
+      }
+      .home-hero-title {
+        font-size: clamp(2.25rem, 12vw, 3rem);
+      }
+      .home-hero-actions {
+        margin-bottom: 2rem;
+      }
+    }
     /* ─── Carrusel infinito ──────────────────────────────── */
     .carousel-viewport {
       overflow: hidden;
@@ -164,8 +198,8 @@ const HERO_STATS = [
          HERO
     ════════════════════════════════════════════════════ -->
     <section
-      class="relative flex flex-col items-center justify-center text-center px-4 py-24 sm:py-32 overflow-hidden"
-      style="min-height: 80vh; background: var(--ts-gradient-hero);"
+      class="home-hero relative flex flex-col items-center justify-center text-center px-4 overflow-hidden"
+      style="background: var(--ts-gradient-hero);"
     >
       <!-- Orbes decorativos -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -189,18 +223,18 @@ const HERO_STATS = [
           Nueva coleccion disponible
         </div>
 
-        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-6">
+        <h1 class="home-hero-title font-black tracking-tight mb-6">
           <span style="color:var(--ts-text);">Tu proximo</span><br>
           <span style="background:var(--ts-gradient-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">dispositivo</span><br>
           <span style="color:var(--ts-text);">te espera</span>
         </h1>
 
-        <p class="text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style="color:var(--ts-text-muted);">
+        <p class="home-hero-copy max-w-2xl mx-auto mb-10 leading-relaxed" style="color:var(--ts-text-muted);">
           La mejor seleccion de tecnologia con precios competitivos,
           envio rapido y garantia en todos nuestros productos.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+        <div class="home-hero-actions flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a routerLink="/catalogo">
             <button class="ts-btn-brand px-8 py-3.5 text-base flex items-center gap-2">
               <i class="pi pi-th-large"></i> Explorar catalogo
@@ -215,7 +249,7 @@ const HERO_STATS = [
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        <div class="home-stats grid gap-4 max-w-2xl mx-auto">
           @for (stat of heroStats; track stat.label) {
             <div class="flex flex-col items-center gap-1 p-3 rounded-xl"
               style="background:rgba(255,255,255,0.03);border:1px solid var(--ts-border);">

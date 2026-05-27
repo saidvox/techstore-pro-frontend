@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { ConfirmationService } from 'primeng/api';
 
 import { AuthSessionService } from '../../core/services/auth-session.service';
@@ -14,7 +15,7 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
   selector: 'app-shell',
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive,
-    ButtonModule, BadgeModule, OverlayBadgeModule, ConfirmDialogModule,
+    ButtonModule, BadgeModule, OverlayBadgeModule, ConfirmDialogModule, DrawerModule,
     CartSidebar,
   ],
   providers: [ConfirmationService],
@@ -60,6 +61,14 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
 
           <!-- Acciones derecha -->
           <div class="flex items-center gap-2">
+            <button
+              class="menu-trigger md:hidden"
+              type="button"
+              (click)="openMobileMenu()"
+              aria-label="Abrir menu"
+            >
+              <i class="pi pi-bars"></i>
+            </button>
 
             <!-- Botón carrito con badge -->
             <button
@@ -106,22 +115,64 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
           </div>
         </div>
 
-        <nav class="mobile-nav md:hidden" aria-label="Navegacion movil">
-          <a routerLink="/catalogo" routerLinkActive="nav-active" class="mobile-nav-link">
-            <i class="pi pi-th-large text-xs"></i> Catalogo
+      </header>
+
+      <p-drawer
+        styleClass="ts-mobile-drawer"
+        position="left"
+        [visible]="mobileMenuOpen()"
+        [modal]="true"
+        [dismissible]="true"
+        [closeOnEscape]="true"
+        (onHide)="closeMobileMenu()"
+      >
+        <ng-template #header>
+          <a routerLink="/" class="drawer-brand no-underline" (click)="closeMobileMenu()">
+            <div class="drawer-brand-mark">T</div>
+            <span>Tech<span>Store</span> Pro</span>
+          </a>
+        </ng-template>
+
+        <nav class="drawer-nav" aria-label="Navegacion movil">
+          <a routerLink="/catalogo" routerLinkActive="nav-active" class="drawer-nav-link" (click)="closeMobileMenu()">
+            <i class="pi pi-th-large"></i>
+            <span>Catalogo</span>
           </a>
           @if (session.user()) {
-            <a routerLink="/pedidos" routerLinkActive="nav-active" class="mobile-nav-link">
-              <i class="pi pi-receipt text-xs"></i> Mis pedidos
+            <a routerLink="/pedidos" routerLinkActive="nav-active" class="drawer-nav-link" (click)="closeMobileMenu()">
+              <i class="pi pi-receipt"></i>
+              <span>Mis pedidos</span>
             </a>
           }
           @if (session.isAdmin()) {
-            <a routerLink="/admin" routerLinkActive="nav-active" class="mobile-nav-link nav-admin">
-              <i class="pi pi-shield text-xs"></i> Admin
+            <a routerLink="/admin" routerLinkActive="nav-active" class="drawer-nav-link nav-admin" (click)="closeMobileMenu()">
+              <i class="pi pi-shield"></i>
+              <span>Admin</span>
             </a>
           }
         </nav>
-      </header>
+
+        <ng-template #footer>
+          @if (session.user(); as user) {
+            <div class="drawer-user">
+              <div class="drawer-user-avatar">{{ user.email[0].toUpperCase() }}</div>
+              <div class="min-w-0">
+                <p>Cuenta activa</p>
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+            <button class="drawer-logout" type="button" (click)="closeMobileMenu(); logout()">
+              <i class="pi pi-sign-out"></i>
+              Cerrar sesion
+            </button>
+          } @else {
+            <a routerLink="/auth/login" class="drawer-login no-underline" (click)="closeMobileMenu()">
+              <i class="pi pi-sign-in"></i>
+              Entrar
+            </a>
+          }
+        </ng-template>
+      </p-drawer>
 
       <!-- Contenido principal -->
       <main class="flex-1 w-full flex flex-col">
@@ -166,30 +217,140 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
       background: rgba(16, 185, 129, 0.08);
       color: var(--ts-accent);
     }
-    .mobile-nav {
-      display: flex;
-      gap: 0.5rem;
-      overflow-x: auto;
-      padding: 0 0.75rem 0.75rem;
-      scrollbar-width: none;
-    }
-    .mobile-nav::-webkit-scrollbar {
-      display: none;
-    }
-    .mobile-nav-link {
+    .menu-trigger {
       align-items: center;
-      background: rgba(255,255,255,0.03);
+      background: var(--ts-card);
       border: 1px solid var(--ts-border);
+      border-radius: 12px;
+      color: var(--ts-text);
+      display: inline-flex;
+      height: 40px;
+      justify-content: center;
+      transition: border-color 0.2s ease, transform 0.15s ease;
+      width: 40px;
+    }
+    .menu-trigger:hover {
+      border-color: var(--ts-brand);
+      transform: translateY(-1px);
+    }
+    ::ng-deep .ts-mobile-drawer .p-drawer {
+      background: var(--ts-surface) !important;
+      border-right: 1px solid var(--ts-border) !important;
+      color: var(--ts-text) !important;
+      max-width: min(86vw, 320px) !important;
+      width: min(86vw, 320px) !important;
+    }
+    ::ng-deep .ts-mobile-drawer .p-drawer-header {
+      align-items: center !important;
+      border-bottom: 1px solid var(--ts-border) !important;
+      padding: 1rem !important;
+    }
+    ::ng-deep .ts-mobile-drawer .p-drawer-content {
+      padding: 1rem !important;
+    }
+    ::ng-deep .ts-mobile-drawer .p-drawer-footer {
+      border-top: 1px solid var(--ts-border) !important;
+      padding: 1rem !important;
+    }
+    ::ng-deep .ts-mobile-drawer .p-drawer-close-button {
+      color: var(--ts-text-muted) !important;
+    }
+    .drawer-brand {
+      align-items: center;
+      color: var(--ts-text);
+      display: inline-flex;
+      font-size: 1rem;
+      font-weight: 900;
+      gap: 0.65rem;
+    }
+    .drawer-brand span span {
+      color: var(--ts-brand);
+    }
+    .drawer-brand-mark {
+      align-items: center;
+      background: var(--ts-gradient-brand);
       border-radius: 10px;
+      color: #fff;
+      display: inline-flex;
+      font-size: 0.85rem;
+      font-weight: 900;
+      height: 34px;
+      justify-content: center;
+      width: 34px;
+    }
+    .drawer-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .drawer-nav-link,
+    .drawer-login,
+    .drawer-logout {
+      align-items: center;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--ts-border);
+      border-radius: 12px;
       color: var(--ts-text-muted);
+      display: flex;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      gap: 0.7rem;
+      min-height: 46px;
+      padding: 0.75rem 0.85rem;
+      text-decoration: none;
+      width: 100%;
+    }
+    .drawer-nav-link:hover,
+    .drawer-login:hover,
+    .drawer-logout:hover {
+      border-color: var(--ts-brand);
+      color: var(--ts-text);
+    }
+    .drawer-user {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      min-width: 0;
+    }
+    .drawer-user-avatar {
+      align-items: center;
+      background: var(--ts-gradient-brand);
+      border-radius: 999px;
+      color: #fff;
       display: inline-flex;
       flex: 0 0 auto;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
+      font-weight: 900;
+      height: 34px;
+      justify-content: center;
+      width: 34px;
+    }
+    .drawer-user p {
+      color: var(--ts-text);
+      font-size: 0.8rem;
       font-weight: 800;
-      gap: 0.4rem;
-      min-height: 40px;
-      padding: 0.55rem 0.8rem;
-      text-decoration: none;
+      margin: 0;
+    }
+    .drawer-user span {
+      color: var(--ts-text-muted);
+      display: block;
+      font-size: 0.75rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .drawer-login {
+      background: var(--ts-gradient-brand);
+      border: 0;
+      color: #fff;
+      justify-content: center;
+    }
+    .drawer-logout {
+      background: transparent;
+      cursor: pointer;
+      justify-content: center;
     }
     ::ng-deep .ts-confirm-dialog {
       background: var(--ts-card) !important;
@@ -304,8 +465,17 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
 export class Shell {
   readonly session = inject(AuthSessionService);
   readonly cart = inject(CartStore);
+  readonly mobileMenuOpen = signal(false);
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
+
+  openMobileMenu(): void {
+    this.mobileMenuOpen.set(true);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
 
   logout(): void {
     this.confirmationService.confirm({

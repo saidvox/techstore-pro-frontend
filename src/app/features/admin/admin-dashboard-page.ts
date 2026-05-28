@@ -557,8 +557,21 @@ interface LazyPageEvent {
                       </div>
                       <div class="mobile-meta">
                         <div><span>Categoria</span><strong>{{ row.category }}</strong></div>
-                        <div><span>Precio</span><strong>S/ {{ row.price | number: '1.2-2' }}</strong></div>
+                        <div>
+                          <span>Precio</span>
+                          <strong>
+                            @if (row.onOffer) {
+                              S/ {{ (row.effectivePrice ?? row.price) | number: '1.2-2' }}
+                            } @else {
+                              S/ {{ row.price | number: '1.2-2' }}
+                            }
+                          </strong>
+                        </div>
                         <div><span>Stock</span><strong [class.text-red-400]="row.stock <= 0" [class.text-emerald-400]="row.stock > 0">{{ row.stock }}</strong></div>
+                        <div>
+                          <span>Oferta</span>
+                          <strong [class.text-emerald-400]="row.onOffer">{{ row.onOffer ? 'Activa' : 'Sin oferta' }}</strong>
+                        </div>
                       </div>
                       <div class="mobile-actions">
                         <p-button label="Editar" icon="pi pi-pencil" severity="info" size="small" [text]="true" (onClick)="openProductDialog(row)" [ariaLabel]="'Editar producto ' + row.name" [title]="'Editar producto ' + row.name" />
@@ -593,6 +606,7 @@ interface LazyPageEvent {
                   <th>Informacion del Producto</th>
                   <th>Categoria</th>
                   <th>Precio</th>
+                  <th>Oferta</th>
                   <th>Stock</th>
                   <th>Estado</th>
                   <th class="w-28 text-center">Accion</th>
@@ -610,7 +624,21 @@ interface LazyPageEvent {
                   <td>
                     <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--ts-brand-light);">{{ row.category }}</span>
                   </td>
-                  <td class="font-bold">S/ {{ row.price | number: '1.2-2' }}</td>
+                  <td class="font-bold">
+                    @if (row.onOffer) {
+                      <div>S/ {{ (row.effectivePrice ?? row.price) | number: '1.2-2' }}</div>
+                      <div class="text-xs line-through" style="color: var(--ts-text-dim);">S/ {{ row.price | number: '1.2-2' }}</div>
+                    } @else {
+                      S/ {{ row.price | number: '1.2-2' }}
+                    }
+                  </td>
+                  <td>
+                    @if (row.onOffer) {
+                      <span class="ts-badge ts-badge-success">Oferta -{{ row.discountPercentage }}%</span>
+                    } @else {
+                      <span class="ts-badge">Sin oferta</span>
+                    }
+                  </td>
                   <td>
                     @if (row.stock > 0) {
                       <span class="font-bold" style="color: #10B981;">{{ row.stock }}</span>
@@ -633,7 +661,7 @@ interface LazyPageEvent {
               </ng-template>
               <ng-template #emptymessage>
                 <tr>
-                  <td colspan="7" class="py-12 text-center" style="color: var(--ts-text-muted);">
+                  <td colspan="8" class="py-12 text-center" style="color: var(--ts-text-muted);">
                     <i class="pi pi-inbox text-3xl mb-3 opacity-50 block"></i>
                     No hay productos registrados en el inventario.
                   </td>
@@ -968,6 +996,29 @@ interface LazyPageEvent {
               <p-inputnumber name="stock" [(ngModel)]="product.stock" [min]="0" [showButtons]="true" styleClass="w-full" />
             </label>
           </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <label class="form-label">
+              Precio oferta (S/)
+              <p-inputnumber
+                name="offerPrice"
+                [(ngModel)]="product.offerPrice"
+                mode="decimal"
+                [min]="0"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+                placeholder="Sin oferta"
+                styleClass="w-full"
+              />
+            </label>
+            <label class="form-label">
+              Inicio oferta
+              <input class="native-date" name="offerStartsAt" type="datetime-local" [(ngModel)]="product.offerStartsAt" />
+            </label>
+            <label class="form-label">
+              Fin oferta
+              <input class="native-date" name="offerEndsAt" type="datetime-local" [(ngModel)]="product.offerEndsAt" />
+            </label>
+          </div>
         </div>
         <div class="dialog-actions flex justify-end gap-3 mt-6">
           <p-button label="Cancelar" type="button" severity="secondary" [text]="true" (onClick)="showProductDialog.set(false)" />
@@ -1255,6 +1306,9 @@ export class AdminDashboardPage implements OnInit {
         description: existingProduct.description,
         imageUrl: existingProduct.imageUrl,
         price: existingProduct.price,
+        offerPrice: existingProduct.offerPrice ?? null,
+        offerStartsAt: this.toDateTimeLocal(existingProduct.offerStartsAt),
+        offerEndsAt: this.toDateTimeLocal(existingProduct.offerEndsAt),
         stock: existingProduct.stock,
         active: existingProduct.active
       };
@@ -1360,6 +1414,9 @@ export class AdminDashboardPage implements OnInit {
       name: this.product.name.trim(),
       description: this.product.description.trim(),
       imageUrl: this.product.imageUrl?.trim() || null,
+      offerPrice: this.product.offerPrice || null,
+      offerStartsAt: this.toIsoDateTime(this.product.offerStartsAt),
+      offerEndsAt: this.toIsoDateTime(this.product.offerEndsAt),
     };
 
     const apiCall = this.editProductId()
@@ -1387,6 +1444,9 @@ export class AdminDashboardPage implements OnInit {
       description: product.description,
       imageUrl: product.imageUrl,
       price: product.price,
+      offerPrice: product.offerPrice ?? null,
+      offerStartsAt: product.offerStartsAt ?? null,
+      offerEndsAt: product.offerEndsAt ?? null,
       stock: product.stock,
       active: !product.active
     };
@@ -1580,8 +1640,34 @@ export class AdminDashboardPage implements OnInit {
       description: '',
       imageUrl: null,
       price: 0.01,
+      offerPrice: null,
+      offerStartsAt: null,
+      offerEndsAt: null,
       stock: 0,
       active: true,
     };
+  }
+
+  private toDateTimeLocal(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  }
+
+  private toIsoDateTime(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 }

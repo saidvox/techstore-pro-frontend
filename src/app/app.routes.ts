@@ -68,6 +68,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/orders/orders-page').then(m => m.OrdersPage),
       },
       {
+        path: 'favoritos',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/favorites/favorites-page').then(m => m.FavoritesPage),
+      },
+      {
         path: 'admin',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/admin-dashboard-page').then(m => m.AdminDashboardPage),

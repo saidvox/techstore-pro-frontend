@@ -9,11 +9,19 @@ const USER_KEY = 'techstore.user';
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
   private readonly state = signal<SessionState>(this.readInitialState());
+  private expirationTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly token = computed(() => this.state().token);
   readonly user = computed(() => this.state().user);
-  readonly isAuthenticated = computed(() => Boolean(this.state().token));
+  readonly isAuthenticated = computed(() => {
+    const token = this.state().token;
+    return Boolean(token && !this.isTokenExpired(token));
+  });
   readonly isAdmin = computed(() => this.state().user?.role === 'ADMIN');
+
+  constructor() {
+    this.scheduleExpirationClear(this.state().token);
+  }
 
   setSession(response: AuthResponse): void {
     this.saveSession(response.token, response.user);
@@ -24,9 +32,34 @@ export class AuthSessionService {
   }
 
   clear(): void {
+    this.clearExpirationTimer();
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this.state.set({ token: null, user: null });
+  }
+
+  clearIfExpired(): boolean {
+    const token = this.state().token;
+    if (!token || !this.isTokenExpired(token)) {
+      return false;
+    }
+
+    this.clear();
+    return true;
+  }
+
+  isTokenExpired(token: string | null = this.state().token): boolean {
+    if (!token) {
+      return true;
+    }
+
+    const payload = this.decodePayload(token);
+    const expiresAt = this.readNumber(payload ?? {}, 'exp');
+    if (!expiresAt) {
+      return true;
+    }
+
+    return expiresAt * 1000 <= Date.now();
   }
 
   private saveSession(token: string, user: User | null): void {
@@ -37,11 +70,19 @@ export class AuthSessionService {
       localStorage.removeItem(USER_KEY);
     }
     this.state.set({ token, user });
+    this.scheduleExpirationClear(token);
   }
 
   private readInitialState(): SessionState {
     const token = localStorage.getItem(TOKEN_KEY);
     const storedUser = localStorage.getItem(USER_KEY);
+
+    if (this.isTokenExpired(token)) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return { token: null, user: null };
+    }
+
     return {
       token,
       user: storedUser ? this.parseUser(storedUser) : token ? this.userFromToken(token) : null,
@@ -118,5 +159,39 @@ export class AuthSessionService {
     const value = record[key];
     return typeof value === 'number' ? value : null;
   }
-}
 
+  private scheduleExpirationClear(token: string | null): void {
+    this.clearExpirationTimer();
+    const expiresAt = this.tokenExpirationTime(token);
+    if (!expiresAt) {
+      return;
+    }
+
+    const delay = expiresAt - Date.now();
+    if (delay <= 0) {
+      this.clear();
+      return;
+    }
+
+    this.expirationTimer = setTimeout(() => this.clear(), delay);
+  }
+
+  private clearExpirationTimer(): void {
+    if (!this.expirationTimer) {
+      return;
+    }
+
+    clearTimeout(this.expirationTimer);
+    this.expirationTimer = null;
+  }
+
+  private tokenExpirationTime(token: string | null): number | null {
+    if (!token) {
+      return null;
+    }
+
+    const payload = this.decodePayload(token);
+    const expiresAt = this.readNumber(payload ?? {}, 'exp');
+    return expiresAt ? expiresAt * 1000 : null;
+  }
+}

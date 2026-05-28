@@ -15,12 +15,15 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { SliderModule } from 'primeng/slider';
 import { DrawerModule } from 'primeng/drawer';
 import { MessageService } from 'primeng/api';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { Product } from '../../core/models/product.model';
 import { CartStore } from '../cart/cart.store';
 import { CatalogStore } from './catalog.store';
 import { displayImageUrl } from '../../core/utils/image-url.util';
+import { AuthSessionService } from '../../core/services/auth-session.service';
+import { FavoriteApiService } from '../../core/services/favorite-api.service';
 
 // ── Mapa ícono/color por categoría ─────────────────────────────────────────
 const CAT_CFG: Record<string, { icon: string; color: string; bg: string }> = {
@@ -53,7 +56,6 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
     }
     @media (max-width: 900px) {
       .catalog-layout { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
     }
 
     .sidebar {
@@ -67,12 +69,47 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
       flex-direction: column;
       gap: 1.5rem;
     }
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+    }
     .sidebar-title {
       font-size: 0.7rem;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--ts-brand);
+    }
+    .fav-btn {
+      position: absolute;
+      top: .75rem;
+      left: .75rem;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      border: 1px solid var(--ts-border);
+      background: rgba(10,10,24,.78);
+      color: var(--ts-text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: color .2s, border-color .2s, background .2s, transform .2s;
+    }
+    .fav-btn:hover { transform: translateY(-1px); color: #fb7185; border-color: rgba(251,113,133,.55); }
+    .fav-btn.active { color: #fb7185; border-color: rgba(251,113,133,.6); background: rgba(251,113,133,.14); }
+    .price-stack { display: flex; flex-direction: column; gap: .15rem; }
+    .price-old { font-size: .75rem; color: var(--ts-text-muted); text-decoration: line-through; }
+    .offer-badge {
+      display: inline-flex;
+      width: fit-content;
+      padding: .15rem .45rem;
+      border-radius: 999px;
+      background: rgba(251,113,133,.16);
+      color: #fb7185;
+      font-size: .65rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
     }
     .filter-label {
       display: flex;
@@ -841,6 +878,15 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
                   <article class="p-card" [routerLink]="['/catalogo', product.id]">
                     <!-- Imagen -->
                     <div class="p-card-img-wrap">
+                      <button
+                        type="button"
+                        class="fav-btn"
+                        [class.active]="product.favorite"
+                        [attr.aria-label]="product.favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                        (click)="toggleFavorite($event, product)"
+                      >
+                        <i class="pi" [class.pi-heart-fill]="product.favorite" [class.pi-heart]="!product.favorite"></i>
+                      </button>
                       @if (product.imageUrl) {
                         <img
                           [src]="imageSrc(product.imageUrl)"
@@ -878,7 +924,13 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
                       <div class="p-card-footer">
                         <div>
                           <p class="p-card-price-label">Precio</p>
-                          <p class="p-card-price">S/ {{ product.price | number:'1.2-2' }}</p>
+                          <div class="price-stack">
+                            @if (product.onOffer) {
+                              <span class="offer-badge">-{{ product.discountPercentage }}%</span>
+                              <span class="price-old">S/ {{ product.price | number:'1.2-2' }}</span>
+                            }
+                            <p class="p-card-price">S/ {{ (product.effectivePrice ?? product.price) | number:'1.2-2' }}</p>
+                          </div>
                         </div>
                         <button
                           class="add-btn"
@@ -926,6 +978,9 @@ interface LazyPageEvent { first?: number | null; rows?: number | null; }
 export class CatalogPage implements OnInit {
   readonly store = inject(CatalogStore);
   private readonly cart = inject(CartStore);
+  private readonly favoriteApi = inject(FavoriteApiService);
+  private readonly session = inject(AuthSessionService);
+  private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
 
   q            = '';
@@ -1045,6 +1100,37 @@ export class CatalogPage implements OnInit {
       summary: 'Agregado al carrito', 
       detail: `${product.name} fue añadido a tu carrito.`, 
       life: 3000 
+    });
+  }
+
+  toggleFavorite(event: Event, product: Product): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.session.isAuthenticated()) {
+      void this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    const nextFavorite = !product.favorite;
+    const request: Observable<Product | void> = nextFavorite ? this.favoriteApi.add(product.id) : this.favoriteApi.remove(product.id);
+    request.subscribe({
+      next: () => {
+        this.store.patchProductFavorite(product.id, nextFavorite);
+        this.messageService.add({
+          severity: 'success',
+          summary: nextFavorite ? 'Favorito guardado' : 'Favorito eliminado',
+          detail: product.name,
+          life: 2200,
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo actualizar favoritos',
+          detail: 'Intenta nuevamente.',
+          life: 3000,
+        });
+      },
     });
   }
 

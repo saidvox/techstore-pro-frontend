@@ -48,6 +48,9 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
               <i class="pi pi-th-large mr-1.5 text-xs"></i> Catalogo
             </a>
             @if (session.user()) {
+              <a routerLink="/favoritos" routerLinkActive="nav-active" class="nav-link">
+                <i class="pi pi-heart mr-1.5 text-xs"></i> Favoritos
+              </a>
               <a routerLink="/pedidos" routerLinkActive="nav-active" class="nav-link">
                 <i class="pi pi-receipt mr-1.5 text-xs"></i> Mis pedidos
               </a>
@@ -139,6 +142,10 @@ import { CartSidebar } from '../cart-sidebar/cart-sidebar';
             <span>Catalogo</span>
           </a>
           @if (session.user()) {
+            <a routerLink="/favoritos" routerLinkActive="nav-active" class="drawer-nav-link" (click)="closeMobileMenu()">
+              <i class="pi pi-heart"></i>
+              <span>Favoritos</span>
+            </a>
             <a routerLink="/pedidos" routerLinkActive="nav-active" class="drawer-nav-link" (click)="closeMobileMenu()">
               <i class="pi pi-receipt"></i>
               <span>Mis pedidos</span>

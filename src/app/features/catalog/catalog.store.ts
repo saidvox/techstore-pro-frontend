@@ -1,9 +1,12 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, map, of, switchMap } from 'rxjs';
 
 import { Category } from '../../core/models/category.model';
 import { Product, ProductFilters } from '../../core/models/product.model';
+import { AuthSessionService } from '../../core/services/auth-session.service';
 import { CategoryApiService } from '../../core/services/category-api.service';
+import { FavoriteApiService } from '../../core/services/favorite-api.service';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { SelectOption } from '../../shared/models/select-option.model';
 
@@ -11,6 +14,8 @@ import { SelectOption } from '../../shared/models/select-option.model';
 export class CatalogStore {
   private readonly categoryApi = inject(CategoryApiService);
   private readonly productApi = inject(ProductApiService);
+  private readonly favoriteApi = inject(FavoriteApiService);
+  private readonly session = inject(AuthSessionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly filtersState = signal<ProductFilters>({ page: 0, size: 10, sort: 'name,asc' });
 
@@ -34,7 +39,25 @@ export class CatalogStore {
     this.error.set(null);
 
     this.productApi.list(this.filtersState())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        switchMap(response => {
+          if (!this.session.isAuthenticated()) {
+            return of(response);
+          }
+
+          return this.favoriteApi.list().pipe(
+            map(favorites => {
+              const favoriteIds = new Set(favorites.map(product => product.id));
+              return {
+                ...response,
+                content: response.content.map(product => ({ ...product, favorite: favoriteIds.has(product.id) })),
+              };
+            }),
+            catchError(() => of(response))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: response => {
           this.products.set(response.content);
@@ -75,5 +98,11 @@ export class CatalogStore {
 
   reload(): void {
     this.load();
+  }
+
+  patchProductFavorite(productId: number, favorite: boolean): void {
+    this.products.update(products =>
+      products.map(product => product.id === productId ? { ...product, favorite } : product)
+    );
   }
 }

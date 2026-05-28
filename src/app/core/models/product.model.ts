@@ -10,8 +10,15 @@ export interface Product {
   description: string;
   imageUrl: string | null;
   price: number;
+  offerPrice?: number | null;
+  offerStartsAt?: string | null;
+  offerEndsAt?: string | null;
+  onOffer?: boolean;
+  effectivePrice?: number;
+  discountPercentage?: number | null;
   stock: number;
   active: boolean;
+  favorite?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -23,6 +30,9 @@ export interface ProductRequest {
   description: string;
   imageUrl?: string | null;
   price: number;
+  offerPrice?: number | null;
+  offerStartsAt?: string | null;
+  offerEndsAt?: string | null;
   stock: number;
   active: boolean;
 }

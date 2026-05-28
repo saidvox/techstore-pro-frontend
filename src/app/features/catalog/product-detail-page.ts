@@ -6,11 +6,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
+import { Observable } from 'rxjs';
 
 import { Product } from '../../core/models/product.model';
 import { ProductApiService } from '../../core/services/product-api.service';
 import { CartStore } from '../cart/cart.store';
 import { displayImageUrl } from '../../core/utils/image-url.util';
+import { AuthSessionService } from '../../core/services/auth-session.service';
+import { FavoriteApiService } from '../../core/services/favorite-api.service';
 
 const CAT_CFG: Record<string, { icon: string; color: string }> = {
   'Laptops':        { icon: 'pi pi-desktop',    color: '#6C63FF' },
@@ -78,6 +81,24 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
     .pdp-img { width: 100%; height: 100%; object-fit: contain; padding: 2rem; transition: transform 0.3s; }
     .pdp-img:hover { transform: scale(1.05); }
     .pdp-icon-fallback { font-size: 6rem; opacity: 0.8; }
+    .fav-detail-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--ts-border);
+      background: rgba(10,10,24,.8);
+      color: var(--ts-text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .2s, border-color .2s, background .2s, transform .2s;
+      z-index: 3;
+    }
+    .fav-detail-btn:hover { transform: translateY(-1px); color: #fb7185; border-color: rgba(251,113,133,.55); }
+    .fav-detail-btn.active { color: #fb7185; border-color: rgba(251,113,133,.6); background: rgba(251,113,133,.14); }
     
     /* ── Right Column (Info) ─────────────────────────────── */
     .pdp-info { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -96,9 +117,21 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
     }
     .pdp-title { font-size: 2.5rem; font-weight: 900; line-height: 1.1; color: var(--ts-text); }
     
-    .pdp-price-box { display: flex; align-items: baseline; gap: 1rem; }
+    .pdp-price-box { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
     .pdp-price { font-size: 2.5rem; font-weight: 900; color: var(--ts-text); }
     .pdp-price-label { font-size: 0.875rem; font-weight: 600; color: var(--ts-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .price-old { color: var(--ts-text-muted); font-size: 1rem; font-weight: 700; text-decoration: line-through; }
+    .offer-badge {
+      align-self: center;
+      background: rgba(251,113,133,.16);
+      border-radius: 999px;
+      color: #fb7185;
+      font-size: .75rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      padding: .25rem .55rem;
+      text-transform: uppercase;
+    }
     
     .pdp-stock-box {
       display: flex;
@@ -157,6 +190,7 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
     .p-card-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
     .p-card-name { font-weight: 700; font-size: 0.9rem; color: var(--ts-text); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .p-card-price { font-weight: 800; font-size: 1rem; color: var(--ts-text); margin-top: auto; padding-top: 0.5rem; }
+    .p-card-old-price { color: var(--ts-text-muted); font-size: .75rem; text-decoration: line-through; }
 
     .skel { background: var(--ts-card); border-radius: 16px; animation: skel-pulse 1.8s ease-in-out infinite; }
     @keyframes skel-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -255,6 +289,15 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
             
             <!-- Izquierda: Imagen -->
             <div class="pdp-img-box">
+              <button
+                type="button"
+                class="fav-detail-btn"
+                [class.active]="p.favorite"
+                [attr.aria-label]="p.favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                (click)="toggleFavorite(p)"
+              >
+                <i class="pi" [class.pi-heart-fill]="p.favorite" [class.pi-heart]="!p.favorite"></i>
+              </button>
               @if (p.imageUrl) {
                 <img [src]="imageSrc(p.imageUrl)" [alt]="p.name" class="pdp-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                 <div class="pdp-img-wrap" style="display:none;position:absolute;inset:0;">
@@ -280,7 +323,11 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
               <!-- Precio -->
               <div class="pdp-price-box">
                 <span class="pdp-price-label">Precio especial</span>
-                <span class="pdp-price">S/ {{ p.price | number:'1.2-2' }}</span>
+                @if (p.onOffer) {
+                  <span class="offer-badge">-{{ p.discountPercentage }}%</span>
+                  <span class="price-old">S/ {{ p.price | number:'1.2-2' }}</span>
+                }
+                <span class="pdp-price">S/ {{ (p.effectivePrice ?? p.price) | number:'1.2-2' }}</span>
               </div>
 
               <hr class="divider">
@@ -327,7 +374,10 @@ const DEF_CFG = { icon: 'pi pi-box', color: '#6C63FF' };
                     </div>
                     <div class="p-card-body">
                       <h3 class="p-card-name">{{ rp.name }}</h3>
-                      <p class="p-card-price">S/ {{ rp.price | number:'1.2-2' }}</p>
+                      @if (rp.onOffer) {
+                        <span class="p-card-old-price">S/ {{ rp.price | number:'1.2-2' }}</span>
+                      }
+                      <p class="p-card-price">S/ {{ (rp.effectivePrice ?? rp.price) | number:'1.2-2' }}</p>
                     </div>
                   </a>
                 }
@@ -348,6 +398,8 @@ export class ProductDetailPage implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
+  private readonly favoriteApi = inject(FavoriteApiService);
+  private readonly session = inject(AuthSessionService);
 
   readonly product = signal<Product | null>(null);
   readonly loading = signal(true);
@@ -374,6 +426,7 @@ export class ProductDetailPage implements OnInit {
     this.productApi.detail(id).subscribe({
       next: (p) => {
         this.product.set(p);
+        this.markFavoriteIfNeeded(p);
         this.loading.set(false);
         this.loadRelated(p.category, p.id);
       },
@@ -411,6 +464,35 @@ export class ProductDetailPage implements OnInit {
     });
   }
 
+  toggleFavorite(p: Product): void {
+    if (!this.session.isAuthenticated()) {
+      void this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    const nextFavorite = !p.favorite;
+    const request: Observable<Product | void> = nextFavorite ? this.favoriteApi.add(p.id) : this.favoriteApi.remove(p.id);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.product.update(current => current?.id === p.id ? { ...current, favorite: nextFavorite } : current);
+        this.messageService.add({
+          severity: 'success',
+          summary: nextFavorite ? 'Favorito guardado' : 'Favorito eliminado',
+          detail: p.name,
+          life: 2200,
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo actualizar favoritos',
+          detail: 'Intenta nuevamente.',
+          life: 3000,
+        });
+      },
+    });
+  }
+
   getCatIcon(category: string): string {
     return (CAT_CFG[category] ?? DEF_CFG).icon;
   }
@@ -421,5 +503,21 @@ export class ProductDetailPage implements OnInit {
 
   imageSrc(url: string | null | undefined): string | null {
     return displayImageUrl(url);
+  }
+
+  private markFavoriteIfNeeded(product: Product): void {
+    if (!this.session.isAuthenticated()) {
+      return;
+    }
+
+    this.favoriteApi.list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: favorites => {
+          const favorite = favorites.some(item => item.id === product.id);
+          this.product.update(current => current?.id === product.id ? { ...current, favorite } : current);
+        },
+        error: () => undefined,
+      });
   }
 }

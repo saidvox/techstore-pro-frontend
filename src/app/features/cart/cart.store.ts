@@ -67,7 +67,7 @@ export class CartStore {
       return [...items, {
         productId: product.id,
         productName: product.name,
-        unitPrice: product.price,
+        unitPrice: product.effectivePrice ?? product.price,
         quantity: 1,
         availableStock: product.stock,
         category: product.category,
